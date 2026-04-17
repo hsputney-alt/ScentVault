@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import FragranceFilters, { FilterState } from '../components/FragranceFilters'
+import SearchBar from '../components/SearchBar'
 
 type DiscounterPrice = {
   id: string
@@ -22,7 +23,7 @@ type Fragrance = {
   discounterPrices: DiscounterPrice[]
 }
 
-function applyFilters(fragrances: Fragrance[], filters: FilterState) {
+function applyFilters(fragrances: Fragrance[], filters: FilterState, query: string) {
   return fragrances.filter(f => {
     if (filters.category === 'Designer' && f.house.tier === 'niche') return false
     if (filters.category === 'Niche' && f.house.tier === 'designer') return false
@@ -31,22 +32,36 @@ function applyFilters(fragrances: Fragrance[], filters: FilterState) {
     if (filters.season !== 'All' && !f.season.map(s => s.toLowerCase()).includes(filters.season.toLowerCase())) return false
     if (filters.timeOfDay === 'Day' && !f.occasion.some(o => ['office', 'casual', 'sport'].includes(o.toLowerCase()))) return false
     if (filters.timeOfDay === 'Night' && !f.occasion.some(o => ['date', 'evening'].includes(o.toLowerCase()))) return false
+    if (filters.concentration !== 'All' && f.concentration !== filters.concentration) return false
+    if (query) {
+      const q = query.toLowerCase()
+      const matches =
+        f.name.toLowerCase().includes(q) ||
+        f.house.name.toLowerCase().includes(q) ||
+        f.occasion.some(o => o.toLowerCase().includes(q)) ||
+        f.season.some(s => s.toLowerCase().includes(q))
+      if (!matches) return false
+    }
     return true
   })
 }
 
 export default function WishlistClient({ fragrances }: { fragrances: Fragrance[] }) {
   const [filters, setFilters] = useState<FilterState>({
-    category: 'All', gender: 'All', occasion: 'All', timeOfDay: 'All', season: 'All',
+    category: 'All', gender: 'All', occasion: 'All', timeOfDay: 'All', season: 'All', concentration: 'All',
   })
-
-  const filtered = applyFilters(fragrances, filters)
+  const [query, setQuery] = useState('')
+  const filtered = applyFilters(fragrances, filters, query)
 
   return (
     <div style={{padding: '32px', maxWidth: '1000px', margin: '0 auto'}}>
       <div style={{marginBottom: '24px'}}>
         <h1 style={{fontFamily: 'Georgia, serif', fontSize: '30px', color: '#0f172a', marginBottom: '8px', fontWeight: 400}}>Wishlist</h1>
         <p style={{color: '#94a3b8', fontSize: '14px'}}>Fragrances you want — with the best current prices.</p>
+      </div>
+
+      <div style={{marginBottom: '24px'}}>
+        <SearchBar onSearch={setQuery} />
       </div>
 
       <FragranceFilters onChange={setFilters} />
@@ -115,7 +130,7 @@ export default function WishlistClient({ fragrances }: { fragrances: Fragrance[]
                     <div style={{display: 'flex', gap: '8px', justifyContent: 'flex-end'}}>
                       {sortedPrices.map((price) => (
                         
-    <a                       key={price.id}
+<a                           key={price.id}
                           href={price.affiliateUrl}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -135,7 +150,7 @@ export default function WishlistClient({ fragrances }: { fragrances: Fragrance[]
 
       {filtered.length === 0 && (
         <div style={{textAlign: 'center', padding: '48px', color: '#94a3b8', fontSize: '14px'}}>
-          No fragrances match these filters.
+          No fragrances match your search.
         </div>
       )}
     </div>

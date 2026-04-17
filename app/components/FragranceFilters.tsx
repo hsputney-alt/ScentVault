@@ -8,6 +8,7 @@ export type FilterState = {
   occasion: string
   timeOfDay: string
   season: string
+  concentration: string
 }
 
 const defaultFilters: FilterState = {
@@ -16,6 +17,7 @@ const defaultFilters: FilterState = {
   occasion: 'All',
   timeOfDay: 'All',
   season: 'All',
+  concentration: 'All',
 }
 
 type Props = {
@@ -65,6 +67,13 @@ export default function FragranceFilters({ onChange, hideOccasion }: Props) {
           <span style={{fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', minWidth: '80px'}}>Gender</span>
           {['Masculine', 'Feminine', 'Unisex'].map(f => (
             <button key={f} onClick={() => update('gender', f)} style={btn(filters.gender === f)}>{f}</button>
+          ))}
+        </div>
+
+        <div style={{display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap'}}>
+          <span style={{fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', minWidth: '80px'}}>Concentration</span>
+          {['EF', 'EDC', 'EDT', 'EDP', 'Parfum', 'Extrait'].map(f => (
+            <button key={f} onClick={() => update('concentration', f)} style={btn(filters.concentration === f)}>{f}</button>
           ))}
         </div>
 

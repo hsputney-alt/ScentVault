@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import AuthButtons from './AuthButtons'
 
 type Props = {
   active?: string
@@ -36,14 +37,7 @@ export default function Header({ active }: Props) {
         ))}
       </nav>
 
-      <div style={{display: 'flex', gap: '12px', alignItems: 'center', flexShrink: 0}}>
-        <button style={{fontSize: '14px', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer'}}>
-          Sign in
-        </button>
-        <button style={{fontSize: '14px', background: '#1e3a5f', color: 'white', padding: '8px 18px', borderRadius: '8px', border: 'none', cursor: 'pointer'}}>
-          Get started
-        </button>
-      </div>
+      <AuthButtons />
     </header>
   )
 }

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Header from './components/Header'
+import SearchBar from './components/SearchBar'
 
 export default function Home() {
   return (
@@ -17,6 +18,9 @@ export default function Home() {
         <p className="text-lg text-slate-500 max-w-xl mx-auto mb-10 leading-relaxed">
           Track what you own, discover what you'll love, and always find the best price from trusted discounters.
         </p>
+        <div style={{marginBottom: '48px'}}>
+          <SearchBar redirectToDiscover centered />
+        </div>
         <div className="flex gap-4 justify-center">
           <Link href="/collection" className="bg-blue-900 text-white px-8 py-3 rounded-lg text-sm hover:bg-blue-800 transition-colors">
             Start your collection

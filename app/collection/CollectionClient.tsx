@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import FragranceFilters, { FilterState } from '../components/FragranceFilters'
+import SearchBar from '../components/SearchBar'
+import ShelfView from './ShelfView'
 
 type DiscounterPrice = {
   id: string
@@ -30,7 +32,7 @@ type BottleState = {
   sizeMl: number
 }
 
-function applyFilters(fragrances: Fragrance[], filters: FilterState) {
+function applyFilters(fragrances: Fragrance[], filters: FilterState, query: string) {
   return fragrances.filter(f => {
     if (filters.category === 'Designer' && f.house.tier === 'niche') return false
     if (filters.category === 'Niche' && f.house.tier === 'designer') return false
@@ -39,19 +41,31 @@ function applyFilters(fragrances: Fragrance[], filters: FilterState) {
     if (filters.season !== 'All' && !f.season.map(s => s.toLowerCase()).includes(filters.season.toLowerCase())) return false
     if (filters.timeOfDay === 'Day' && !f.occasion.some(o => ['office', 'casual', 'sport'].includes(o.toLowerCase()))) return false
     if (filters.timeOfDay === 'Night' && !f.occasion.some(o => ['date', 'evening'].includes(o.toLowerCase()))) return false
+    if (filters.concentration !== 'All' && f.concentration !== filters.concentration) return false
+    if (query) {
+      const q = query.toLowerCase()
+      const matches =
+        f.name.toLowerCase().includes(q) ||
+        f.house.name.toLowerCase().includes(q) ||
+        f.occasion.some(o => o.toLowerCase().includes(q)) ||
+        f.season.some(s => s.toLowerCase().includes(q))
+      if (!matches) return false
+    }
     return true
   })
 }
 
-function isFiltered(filters: FilterState) {
-  return Object.values(filters).some(v => v !== 'All')
+function isFiltered(filters: FilterState, query: string) {
+  return Object.values(filters).some(v => v !== 'All') || query.length > 0
 }
 
 export default function CollectionClient({ fragrances }: { fragrances: Fragrance[] }) {
   const [filters, setFilters] = useState<FilterState>({
-    category: 'All', gender: 'All', occasion: 'All', timeOfDay: 'All', season: 'All',
+    category: 'All', gender: 'All', occasion: 'All', timeOfDay: 'All', season: 'All', concentration: 'All',
   })
+  const [query, setQuery] = useState('')
   const [useOz, setUseOz] = useState(false)
+  const [viewMode, setViewMode] = useState<'grid' | 'shelf'>('grid')
   const [bottleStates, setBottleStates] = useState<Record<string, BottleState>>(() => {
     const initial: Record<string, BottleState> = {}
     fragrances.forEach(f => {
@@ -60,15 +74,14 @@ export default function CollectionClient({ fragrances }: { fragrances: Fragrance
     return initial
   })
 
-  const filtered = applyFilters(fragrances, filters)
-  const filtersActive = isFiltered(filters)
+  const filtered = applyFilters(fragrances, filters, query)
+  const filtersActive = isFiltered(filters, query)
 
   const retailTotal = fragrances.reduce((sum, f) => sum + (f.retailPriceUsd ?? 0), 0)
   const paidTotal = fragrances.reduce((sum, f) => {
     const lowest = f.discounterPrices.reduce((min, p) => p.priceUsd < min ? p.priceUsd : min, Infinity)
     return sum + (lowest === Infinity ? (f.retailPriceUsd ?? 0) : lowest)
   }, 0)
-
   const totalMl = fragrances.reduce((sum, f) => {
     const state = bottleStates[f.id]
     if (!state) return sum
@@ -97,19 +110,10 @@ export default function CollectionClient({ fragrances }: { fragrances: Fragrance
     }))
   }
 
-  const volumeToggle = (
-    <button
-      onClick={() => setUseOz(prev => !prev)}
-      style={{marginTop: '6px', fontSize: '11px', color: '#93c5fd', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline'}}
-    >
-      Switch to {useOz ? 'mL' : 'oz'}
-    </button>
-  )
-
   return (
     <div style={{padding: '32px', maxWidth: '1100px', margin: '0 auto'}}>
 
-      {/* Main stats — always 5 boxes */}
+      {/* Main stats */}
       <div style={{display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: filtersActive ? '12px' : '32px'}}>
         <div style={{background: '#f8fafc', borderRadius: '12px', padding: '16px'}}>
           <div style={{fontFamily: 'Georgia, serif', fontSize: '28px', color: '#1e3a5f', marginBottom: '4px'}}>{fragrances.length}</div>
@@ -138,11 +142,16 @@ export default function CollectionClient({ fragrances }: { fragrances: Fragrance
             {formatVolume(totalMl)}
           </div>
           <div style={{fontSize: '12px', color: '#64748b'}}>Volume owned</div>
-          {volumeToggle}
+          <button
+            onClick={() => setUseOz(prev => !prev)}
+            style={{marginTop: '6px', fontSize: '11px', color: '#93c5fd', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline'}}
+          >
+            Switch to {useOz ? 'mL' : 'oz'}
+          </button>
         </div>
       </div>
 
-      {/* Filtered stats — 5 boxes, only when filters active */}
+      {/* Filtered stats */}
       {filtersActive && (
         <div style={{display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: '32px'}}>
           <div style={{background: '#eff6ff', borderRadius: '12px', padding: '16px', border: '1px solid #bfdbfe'}}>
@@ -176,107 +185,147 @@ export default function CollectionClient({ fragrances }: { fragrances: Fragrance
         </div>
       )}
 
+      <div style={{marginBottom: '24px'}}>
+        <SearchBar onSearch={setQuery} />
+      </div>
+
       <FragranceFilters onChange={setFilters} />
 
-      <div style={{fontSize: '12px', color: '#94a3b8', marginBottom: '16px'}}>
-        {filtered.length} fragrance{filtered.length !== 1 ? 's' : ''}
+      {/* View toggle + count */}
+      <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px'}}>
+        <div style={{fontSize: '12px', color: '#94a3b8'}}>
+          {filtered.length} fragrance{filtered.length !== 1 ? 's' : ''}
+        </div>
+        <div style={{display: 'flex', gap: '8px'}}>
+          <button
+            onClick={() => setViewMode('grid')}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '8px',
+              border: viewMode === 'grid' ? '1px solid #1e3a5f' : '1px solid #e2e8f0',
+              background: viewMode === 'grid' ? '#1e3a5f' : 'white',
+              color: viewMode === 'grid' ? 'white' : '#64748b',
+              fontSize: '12px',
+              cursor: 'pointer',
+            }}
+          >
+            Grid
+          </button>
+          <button
+            onClick={() => setViewMode('shelf')}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '8px',
+              border: viewMode === 'shelf' ? '1px solid #1e3a5f' : '1px solid #e2e8f0',
+              background: viewMode === 'shelf' ? '#1e3a5f' : 'white',
+              color: viewMode === 'shelf' ? 'white' : '#64748b',
+              fontSize: '12px',
+              cursor: 'pointer',
+            }}
+          >
+            Shelf
+          </button>
+        </div>
       </div>
 
-      <div style={{display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px'}}>
-        {filtered.map((fragrance) => {
-          const lowest = fragrance.discounterPrices.reduce((min, p) => p.priceUsd < min ? p.priceUsd : min, Infinity)
-          const youPaid = lowest === Infinity ? (fragrance.retailPriceUsd ?? 0) : lowest
-          const state = bottleStates[fragrance.id] ?? { fullness: 10, sizeMl: fragrance.sizeMl ?? 100 }
-          const remainingMl = state.sizeMl * state.fullness / 10
+      {/* Content */}
+      {viewMode === 'shelf' ? (
+        <ShelfView fragrances={filtered} bottleStates={bottleStates} />
+      ) : (
+        <div style={{display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px'}}>
+          {filtered.map((fragrance) => {
+            const lowest = fragrance.discounterPrices.reduce((min, p) => p.priceUsd < min ? p.priceUsd : min, Infinity)
+            const youPaid = lowest === Infinity ? (fragrance.retailPriceUsd ?? 0) : lowest
+            const state = bottleStates[fragrance.id] ?? { fullness: 10, sizeMl: fragrance.sizeMl ?? 100 }
+            const remainingMl = state.sizeMl * state.fullness / 10
 
-          return (
-            <div key={fragrance.id} style={{border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', background: 'white'}}>
-              <div style={{fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#64748b', marginBottom: '4px'}}>
-                {fragrance.house.name}
-              </div>
-              <div style={{fontFamily: 'Georgia, serif', fontSize: '20px', color: '#0f172a', marginBottom: '12px'}}>
-                {fragrance.name}
-              </div>
-              <div style={{display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap'}}>
-                {fragrance.concentration && (
-                  <span style={{fontSize: '11px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '2px 8px', borderRadius: '999px'}}>
-                    {fragrance.concentration}
-                  </span>
-                )}
-                {fragrance.occasion.slice(0, 2).map((o) => (
-                  <span key={o} style={{fontSize: '11px', background: '#f8fafc', color: '#475569', padding: '2px 8px', borderRadius: '999px', textTransform: 'capitalize'}}>
-                    {o}
-                  </span>
-                ))}
-              </div>
-              {fragrance.season.length > 0 && (
-                <div style={{display: 'flex', gap: '8px', marginBottom: '16px'}}>
-                  {fragrance.season.map(s => (
-                    <span key={s} style={{fontSize: '12px', color: '#64748b', textTransform: 'capitalize'}}>{s}</span>
+            return (
+              <div key={fragrance.id} style={{border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', background: 'white'}}>
+                <div style={{fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#64748b', marginBottom: '4px'}}>
+                  {fragrance.house.name}
+                </div>
+                <div style={{fontFamily: 'Georgia, serif', fontSize: '20px', color: '#0f172a', marginBottom: '12px'}}>
+                  {fragrance.name}
+                </div>
+                <div style={{display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap'}}>
+                  {fragrance.concentration && (
+                    <span style={{fontSize: '11px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '2px 8px', borderRadius: '999px'}}>
+                      {fragrance.concentration}
+                    </span>
+                  )}
+                  {fragrance.occasion.slice(0, 2).map((o) => (
+                    <span key={o} style={{fontSize: '11px', background: '#f8fafc', color: '#475569', padding: '2px 8px', borderRadius: '999px', textTransform: 'capitalize'}}>
+                      {o}
+                    </span>
                   ))}
                 </div>
-              )}
-
-              <div style={{background: '#f8fafc', borderRadius: '10px', padding: '12px', marginBottom: '12px'}}>
-                <div style={{display: 'flex', gap: '16px', marginBottom: '12px'}}>
-                  <div style={{flex: 1}}>
-                    <div style={{fontSize: '11px', color: '#94a3b8', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.06em'}}>Bottle size</div>
-                    <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
-                      <input
-                        type="number"
-                        value={state.sizeMl}
-                        min={1}
-                        max={1000}
-                        onChange={e => updateBottle(fragrance.id, 'sizeMl', Number(e.target.value))}
-                        style={{width: '64px', padding: '4px 8px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', color: '#0f172a'}}
-                      />
-                      <span style={{fontSize: '12px', color: '#64748b'}}>mL</span>
+                {fragrance.season.length > 0 && (
+                  <div style={{display: 'flex', gap: '8px', marginBottom: '16px'}}>
+                    {fragrance.season.map(s => (
+                      <span key={s} style={{fontSize: '12px', color: '#64748b', textTransform: 'capitalize'}}>{s}</span>
+                    ))}
+                  </div>
+                )}
+                <div style={{background: '#f8fafc', borderRadius: '10px', padding: '12px', marginBottom: '12px'}}>
+                  <div style={{display: 'flex', gap: '16px', marginBottom: '12px'}}>
+                    <div style={{flex: 1}}>
+                      <div style={{fontSize: '11px', color: '#94a3b8', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.06em'}}>Bottle size</div>
+                      <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                        <input
+                          type="number"
+                          value={state.sizeMl}
+                          min={1}
+                          max={1000}
+                          onChange={e => updateBottle(fragrance.id, 'sizeMl', Number(e.target.value))}
+                          style={{width: '64px', padding: '4px 8px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', color: '#0f172a'}}
+                        />
+                        <span style={{fontSize: '12px', color: '#64748b'}}>mL</span>
+                      </div>
+                    </div>
+                    <div style={{flex: 1}}>
+                      <div style={{fontSize: '11px', color: '#94a3b8', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.06em'}}>Remaining</div>
+                      <div style={{fontSize: '14px', fontWeight: 500, color: '#1e3a5f'}}>{formatVolume(remainingMl)}</div>
                     </div>
                   </div>
-                  <div style={{flex: 1}}>
-                    <div style={{fontSize: '11px', color: '#94a3b8', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.06em'}}>Remaining</div>
-                    <div style={{fontSize: '14px', fontWeight: 500, color: '#1e3a5f'}}>{formatVolume(remainingMl)}</div>
+                  <div>
+                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
+                      <span style={{fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em'}}>Fullness</span>
+                      <span style={{fontSize: '12px', fontWeight: 500, color: '#1e3a5f'}}>{state.fullness}/10</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={1}
+                      max={10}
+                      step={1}
+                      value={state.fullness}
+                      onChange={e => updateBottle(fragrance.id, 'fullness', Number(e.target.value))}
+                      style={{width: '100%', accentColor: '#1e3a5f'}}
+                    />
+                    <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#cbd5e1', marginTop: '2px'}}>
+                      <span>Almost empty</span>
+                      <span>Full</span>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
-                    <span style={{fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em'}}>Fullness</span>
-                    <span style={{fontSize: '12px', fontWeight: 500, color: '#1e3a5f'}}>{state.fullness}/10</span>
+                <div style={{borderTop: '1px solid #f8fafc', paddingTop: '12px', display: 'flex', gap: '24px'}}>
+                  <div>
+                    <div style={{fontSize: '11px', color: '#94a3b8', marginBottom: '2px'}}>Retail</div>
+                    <div style={{fontSize: '14px', fontWeight: 500, color: '#475569'}}>${(fragrance.retailPriceUsd ?? 0).toFixed(0)}</div>
                   </div>
-                  <input
-                    type="range"
-                    min={1}
-                    max={10}
-                    step={1}
-                    value={state.fullness}
-                    onChange={e => updateBottle(fragrance.id, 'fullness', Number(e.target.value))}
-                    style={{width: '100%', accentColor: '#1e3a5f'}}
-                  />
-                  <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#cbd5e1', marginTop: '2px'}}>
-                    <span>Almost empty</span>
-                    <span>Full</span>
+                  <div>
+                    <div style={{fontSize: '11px', color: '#94a3b8', marginBottom: '2px'}}>You paid</div>
+                    <div style={{fontSize: '14px', fontWeight: 500, color: '#1d4ed8'}}>${Math.round(youPaid)}</div>
                   </div>
                 </div>
               </div>
-
-              <div style={{borderTop: '1px solid #f8fafc', paddingTop: '12px', display: 'flex', gap: '24px'}}>
-                <div>
-                  <div style={{fontSize: '11px', color: '#94a3b8', marginBottom: '2px'}}>Retail</div>
-                  <div style={{fontSize: '14px', fontWeight: 500, color: '#475569'}}>${(fragrance.retailPriceUsd ?? 0).toFixed(0)}</div>
-                </div>
-                <div>
-                  <div style={{fontSize: '11px', color: '#94a3b8', marginBottom: '2px'}}>You paid</div>
-                  <div style={{fontSize: '14px', fontWeight: 500, color: '#1d4ed8'}}>${Math.round(youPaid)}</div>
-                </div>
-              </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
 
       {filtered.length === 0 && (
         <div style={{textAlign: 'center', padding: '48px', color: '#94a3b8', fontSize: '14px'}}>
-          No fragrances match these filters.
+          No fragrances match your search.
         </div>
       )}
     </div>

@@ -1,7 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import FragranceFilters, { FilterState } from '../components/FragranceFilters'
+import SearchBar from '../components/SearchBar'
+import Link from 'next/link'
 
 type DiscounterPrice = {
   id: string
@@ -13,6 +16,7 @@ type DiscounterPrice = {
 type Fragrance = {
   id: string
   name: string
+  slug: string
   concentration: string | null
   occasion: string[]
   season: string[]
@@ -23,7 +27,7 @@ type Fragrance = {
   discounterPrices: DiscounterPrice[]
 }
 
-function applyFilters(fragrances: Fragrance[], filters: FilterState) {
+function applyFilters(fragrances: Fragrance[], filters: FilterState, query: string) {
   return fragrances.filter(f => {
     if (filters.category === 'Designer' && f.house.tier === 'niche') return false
     if (filters.category === 'Niche' && f.house.tier === 'designer') return false
@@ -32,22 +36,44 @@ function applyFilters(fragrances: Fragrance[], filters: FilterState) {
     if (filters.season !== 'All' && !f.season.map(s => s.toLowerCase()).includes(filters.season.toLowerCase())) return false
     if (filters.timeOfDay === 'Day' && !f.occasion.some(o => ['office', 'casual', 'sport'].includes(o.toLowerCase()))) return false
     if (filters.timeOfDay === 'Night' && !f.occasion.some(o => ['date', 'evening'].includes(o.toLowerCase()))) return false
+    if (filters.concentration !== 'All' && f.concentration !== filters.concentration) return false
+    if (query) {
+      const q = query.toLowerCase()
+      const matches =
+        f.name.toLowerCase().includes(q) ||
+        f.house.name.toLowerCase().includes(q) ||
+        (f.description?.toLowerCase().includes(q) ?? false) ||
+        f.occasion.some(o => o.toLowerCase().includes(q)) ||
+        f.season.some(s => s.toLowerCase().includes(q))
+      if (!matches) return false
+    }
     return true
   })
 }
 
 export default function DiscoverClient({ fragrances }: { fragrances: Fragrance[] }) {
+  const searchParams = useSearchParams()
+  const [query, setQuery] = useState(searchParams.get('q') ?? '')
   const [filters, setFilters] = useState<FilterState>({
-    category: 'All', gender: 'All', occasion: 'All', timeOfDay: 'All', season: 'All',
+    category: 'All', gender: 'All', occasion: 'All', timeOfDay: 'All', season: 'All', concentration: 'All',
   })
 
-  const filtered = applyFilters(fragrances, filters)
+  useEffect(() => {
+    const q = searchParams.get('q')
+    if (q) setQuery(q)
+  }, [searchParams])
+
+  const filtered = applyFilters(fragrances, filters, query)
 
   return (
     <div style={{padding: '32px', maxWidth: '1100px', margin: '0 auto'}}>
       <div style={{marginBottom: '24px'}}>
         <h1 style={{fontFamily: 'Georgia, serif', fontSize: '30px', color: '#0f172a', marginBottom: '8px', fontWeight: 400}}>Discover</h1>
         <p style={{color: '#94a3b8', fontSize: '14px'}}>Browse fragrances and find the best price from trusted discounters.</p>
+      </div>
+
+      <div style={{marginBottom: '24px'}}>
+        <SearchBar onSearch={setQuery} placeholder="Search fragrances, houses, notes..." />
       </div>
 
       <FragranceFilters onChange={setFilters} />
@@ -63,7 +89,11 @@ export default function DiscoverClient({ fragrances }: { fragrances: Fragrance[]
           const savings = lowestPrice ? (fragrance.retailPriceUsd ?? 0) - lowestPrice.priceUsd : 0
 
           return (
-            <div key={fragrance.id} style={{border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', background: 'white'}}>
+            <Link
+              key={fragrance.id}
+              href={`/fragrance/${fragrance.slug}`}
+              style={{border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', background: 'white', display: 'block', textDecoration: 'none'}}
+            >
               <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px'}}>
                 <div style={{fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#64748b'}}>
                   {fragrance.house.name}
@@ -103,28 +133,25 @@ export default function DiscoverClient({ fragrances }: { fragrances: Fragrance[]
                 </div>
                 <div style={{display: 'flex', flexWrap: 'wrap', gap: '8px'}}>
                   {sortedPrices.length > 0 ? sortedPrices.map((price) => (
-                    
-<a                       key={price.id}
-                      href={price.affiliateUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{fontSize: '12px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '6px 12px', borderRadius: '999px', textDecoration: 'none'}}
+                    <span
+                      key={price.id}
+                      style={{fontSize: '12px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '6px 12px', borderRadius: '999px'}}
                     >
                       {price.discounter.name} ${Number(price.priceUsd).toFixed(0)}
-                    </a>
+                    </span>
                   )) : (
                     <span style={{fontSize: '12px', color: '#cbd5e1'}}>No discounter prices available</span>
                   )}
                 </div>
               </div>
-            </div>
+            </Link>
           )
         })}
       </div>
 
       {filtered.length === 0 && (
         <div style={{textAlign: 'center', padding: '48px', color: '#94a3b8', fontSize: '14px'}}>
-          No fragrances match these filters.
+          No fragrances match your search.
         </div>
       )}
     </div>

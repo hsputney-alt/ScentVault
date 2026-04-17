@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import FragranceFilters, { FilterState } from '../components/FragranceFilters'
+import SearchBar from '../components/SearchBar'
 
 type Fragrance = {
   id: string
@@ -15,7 +16,7 @@ type Fragrance = {
   house: { name: string; tier: string }
 }
 
-function applyFilters(fragrances: Fragrance[], filters: FilterState) {
+function applyFilters(fragrances: Fragrance[], filters: FilterState, query: string) {
   return fragrances.filter(f => {
     if (filters.category === 'Designer' && f.house.tier === 'niche') return false
     if (filters.category === 'Niche' && f.house.tier === 'designer') return false
@@ -23,6 +24,16 @@ function applyFilters(fragrances: Fragrance[], filters: FilterState) {
     if (filters.season !== 'All' && !f.season.map(s => s.toLowerCase()).includes(filters.season.toLowerCase())) return false
     if (filters.timeOfDay === 'Day' && !f.occasion.some(o => ['office', 'casual', 'sport'].includes(o.toLowerCase()))) return false
     if (filters.timeOfDay === 'Night' && !f.occasion.some(o => ['date', 'evening'].includes(o.toLowerCase()))) return false
+    if (filters.concentration !== 'All' && f.concentration !== filters.concentration) return false
+    if (query) {
+      const q = query.toLowerCase()
+      const matches =
+        f.name.toLowerCase().includes(q) ||
+        f.house.name.toLowerCase().includes(q) ||
+        f.occasion.some(o => o.toLowerCase().includes(q)) ||
+        f.season.some(s => s.toLowerCase().includes(q))
+      if (!matches) return false
+    }
     return true
   })
 }
@@ -31,13 +42,13 @@ const rankLabels = ['Best pick', 'Runner up', 'Also great']
 
 export default function TodayClient({ fragrances }: { fragrances: Fragrance[] }) {
   const [activeOccasion, setActiveOccasion] = useState('office')
+  const [query, setQuery] = useState('')
   const [filters, setFilters] = useState<FilterState>({
-    category: 'All', gender: 'All', occasion: 'All', timeOfDay: 'All', season: 'All',
+    category: 'All', gender: 'All', occasion: 'All', timeOfDay: 'All', season: 'All', concentration: 'All',
   })
 
   const occasions = ['Office', 'Casual', 'Date', 'Sport']
-
-  const prefiltered = applyFilters(fragrances, filters)
+  const prefiltered = applyFilters(fragrances, filters, query)
   const top3 = prefiltered.filter(f => f.occasion.map(o => o.toLowerCase()).includes(activeOccasion)).slice(0, 3)
   const rest = prefiltered.filter(f => f.occasion.map(o => o.toLowerCase()).includes(activeOccasion)).slice(3)
   const unrelated = prefiltered.filter(f => !f.occasion.map(o => o.toLowerCase()).includes(activeOccasion))
@@ -86,8 +97,11 @@ export default function TodayClient({ fragrances }: { fragrances: Fragrance[] })
         </div>
       </div>
 
+      <div style={{marginBottom: '24px'}}>
+        <SearchBar onSearch={setQuery} placeholder="Search your collection..." />
+      </div>
+
       <div style={{marginBottom: '32px'}}>
-        <div style={{fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '16px'}}>Refine by</div>
         <FragranceFilters onChange={setFilters} hideOccasion />
       </div>
 
@@ -173,7 +187,7 @@ export default function TodayClient({ fragrances }: { fragrances: Fragrance[] })
 
       {top3.length === 0 && rest.length === 0 && (
         <div style={{textAlign: 'center', padding: '48px', color: '#94a3b8', fontSize: '14px'}}>
-          No fragrances match these filters.
+          No fragrances match your search.
         </div>
       )}
     </div>
