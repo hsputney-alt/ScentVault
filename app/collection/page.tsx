@@ -11,6 +11,9 @@ async function getFragrances() {
       discounterPrices: {
         include: { discounter: true },
       },
+      notes: {
+        include: { note: true },
+      },
     },
     orderBy: { name: 'asc' },
   })
@@ -26,6 +29,7 @@ async function getFragrances() {
     sizeMl: f.sizeMl ?? 100,
     longevity: f.longevity,
     sillage: f.sillage,
+    notes: f.notes.map(n => n.note.name),
     house: { name: f.house.name, tier: f.house.tier },
     discounterPrices: f.discounterPrices.map(p => ({
       id: p.id,

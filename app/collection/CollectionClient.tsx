@@ -23,6 +23,7 @@ type Fragrance = {
   sizeMl: number
   longevity: number | null
   sillage: number | null
+  notes: string[]
   house: { name: string; tier: string }
   discounterPrices: DiscounterPrice[]
 }
@@ -48,7 +49,8 @@ function applyFilters(fragrances: Fragrance[], filters: FilterState, query: stri
         f.name.toLowerCase().includes(q) ||
         f.house.name.toLowerCase().includes(q) ||
         f.occasion.some(o => o.toLowerCase().includes(q)) ||
-        f.season.some(s => s.toLowerCase().includes(q))
+        f.season.some(s => s.toLowerCase().includes(q)) ||
+        f.notes.some(n => n.toLowerCase().includes(q))
       if (!matches) return false
     }
     return true
@@ -113,7 +115,6 @@ export default function CollectionClient({ fragrances }: { fragrances: Fragrance
   return (
     <div style={{padding: '32px', maxWidth: '1100px', margin: '0 auto'}}>
 
-      {/* Main stats */}
       <div style={{display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: filtersActive ? '12px' : '32px'}}>
         <div style={{background: '#f8fafc', borderRadius: '12px', padding: '16px'}}>
           <div style={{fontFamily: 'Georgia, serif', fontSize: '28px', color: '#1e3a5f', marginBottom: '4px'}}>{fragrances.length}</div>
@@ -151,7 +152,6 @@ export default function CollectionClient({ fragrances }: { fragrances: Fragrance
         </div>
       </div>
 
-      {/* Filtered stats */}
       {filtersActive && (
         <div style={{display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: '32px'}}>
           <div style={{background: '#eff6ff', borderRadius: '12px', padding: '16px', border: '1px solid #bfdbfe'}}>
@@ -191,7 +191,6 @@ export default function CollectionClient({ fragrances }: { fragrances: Fragrance
 
       <FragranceFilters onChange={setFilters} />
 
-      {/* View toggle + count */}
       <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px'}}>
         <div style={{fontSize: '12px', color: '#94a3b8'}}>
           {filtered.length} fragrance{filtered.length !== 1 ? 's' : ''}
@@ -228,7 +227,6 @@ export default function CollectionClient({ fragrances }: { fragrances: Fragrance
         </div>
       </div>
 
-      {/* Content */}
       {viewMode === 'shelf' ? (
         <ShelfView fragrances={filtered} bottleStates={bottleStates} />
       ) : (

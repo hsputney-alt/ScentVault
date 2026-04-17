@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import Header from '../components/Header.tsx'
+import Header from '../components/Header'
 import WishlistClient from './WishlistClient'
 
 const prisma = new PrismaClient()
@@ -10,6 +10,9 @@ async function getFragrances() {
       house: true,
       discounterPrices: {
         include: { discounter: true },
+      },
+      notes: {
+        include: { note: true },
       },
     },
     orderBy: { name: 'asc' },
@@ -23,6 +26,7 @@ async function getFragrances() {
     season: f.season,
     gender: f.gender,
     retailPriceUsd: f.retailPriceUsd ? Number(f.retailPriceUsd) : null,
+    notes: f.notes.map(n => n.note.name),
     house: { name: f.house.name, tier: f.house.tier },
     discounterPrices: f.discounterPrices.map(p => ({
       id: p.id,

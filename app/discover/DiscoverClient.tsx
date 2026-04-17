@@ -23,6 +23,7 @@ type Fragrance = {
   gender: string
   description: string | null
   retailPriceUsd: number | null
+  notes: string[]
   house: { name: string; tier: string }
   discounterPrices: DiscounterPrice[]
 }
@@ -44,7 +45,8 @@ function applyFilters(fragrances: Fragrance[], filters: FilterState, query: stri
         f.house.name.toLowerCase().includes(q) ||
         (f.description?.toLowerCase().includes(q) ?? false) ||
         f.occasion.some(o => o.toLowerCase().includes(q)) ||
-        f.season.some(s => s.toLowerCase().includes(q))
+        f.season.some(s => s.toLowerCase().includes(q)) ||
+        f.notes.some(n => n.toLowerCase().includes(q))
       if (!matches) return false
     }
     return true

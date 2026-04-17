@@ -1,12 +1,17 @@
 import { PrismaClient } from '@prisma/client'
-import Header from '../components/Header.tsx'
+import Header from '../components/Header'
 import TodayClient from './TodayClient'
 
 const prisma = new PrismaClient()
 
 async function getFragrances() {
   const raw = await prisma.fragrance.findMany({
-    include: { house: true },
+    include: {
+      house: true,
+      notes: {
+        include: { note: true },
+      },
+    },
     orderBy: { name: 'asc' },
   })
 
@@ -19,6 +24,7 @@ async function getFragrances() {
     gender: f.gender,
     longevity: f.longevity,
     sillage: f.sillage,
+    notes: f.notes.map(n => n.note.name),
     house: { name: f.house.name, tier: f.house.tier },
   }))
 }
