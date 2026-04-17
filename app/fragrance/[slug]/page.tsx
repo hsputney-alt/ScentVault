@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import Link from 'next/link'
-import Header from '../../components/Header.tsx'
+import Header from '../../components/Header'
+import ActionButtons from './ActionButtons'
 
 const prisma = new PrismaClient()
 
@@ -272,14 +273,7 @@ export default async function FragrancePage({ params }: { params: Promise<{ slug
           </div>
         </div>
 
-        <div style={{display: 'flex', gap: '12px'}}>
-          <button style={{flex: 1, padding: '14px', background: '#1e3a5f', color: 'white', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer'}}>
-            Add to collection
-          </button>
-          <button style={{flex: 1, padding: '14px', background: 'white', color: '#1e3a5f', border: '1px solid #bfdbfe', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer'}}>
-            Add to wishlist
-          </button>
-        </div>
+        <ActionButtons fragranceId={fragrance.id} />
 
       </div>
     </main>
