@@ -21,15 +21,20 @@ export async function POST(request: Request) {
 
   const user = await getOrCreateUser(userId)
 
-  const entry = await prisma.userCollection.create({
-    data: { userId: user.id, fragranceId },
-  })
+  try {
+    const entry = await prisma.userCollection.create({
+      data: { userId: user.id, fragranceId },
+    })
 
-  const count = await prisma.userCollection.count({
-    where: { userId: user.id, fragranceId },
-  })
+    const count = await prisma.userCollection.count({
+      where: { userId: user.id, fragranceId },
+    })
 
-  return NextResponse.json({ entry, count })
+    return NextResponse.json({ entry, count })
+  } catch (error) {
+    console.error('Collection create error:', error)
+    return NextResponse.json({ error: String(error) }, { status: 500 })
+  }
 }
 
 export async function GET(request: Request) {

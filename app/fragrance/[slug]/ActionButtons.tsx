@@ -30,10 +30,16 @@ export default function ActionButtons({ fragranceId }: { fragranceId: string }) 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fragranceId }),
     })
-    const data = await res.json()
-    setCollectionCount(data.count ?? collectionCount + 1)
-    setJustAdded(true)
-    setTimeout(() => setJustAdded(false), 2000)
+    const text = await res.text()
+    console.log('API response:', text)
+    try {
+      const data = JSON.parse(text)
+      setCollectionCount(data.count ?? collectionCount + 1)
+      setJustAdded(true)
+      setTimeout(() => setJustAdded(false), 2000)
+    } catch (e) {
+      console.error('Parse error:', e)
+    }
     setLoading(false)
   }
 
