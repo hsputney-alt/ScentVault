@@ -12,6 +12,7 @@ type Fragrance = {
 type WearLog = {
   id: string
   wornDate: string
+  createdAt: string
   occasion: string | null
   notes: string | null
   fragrance: {
@@ -34,6 +35,11 @@ function formatDate(iso: string) {
   const [year, month, day] = datePart.split('-').map(Number)
   const date = new Date(year, month - 1, day)
   return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+function formatTime(iso: string) {
+  const date = new Date(iso)
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 export default function WearLogClient({ fragrances, initialLogs }: Props) {
@@ -77,6 +83,7 @@ export default function WearLogClient({ fragrances, initialLogs }: Props) {
     setLogs(prev => [{
       id: data.log.id,
       wornDate: data.log.wornDate,
+      createdAt: data.log.createdAt ?? new Date().toISOString(),
       occasion: occasionValue,
       notes: notes || null,
       fragrance: {
@@ -137,12 +144,7 @@ export default function WearLogClient({ fragrances, initialLogs }: Props) {
                     <span style={{fontSize: '12px', color: '#64748b'}}> ({selectedFragrance.concentration})</span>
                   )}
                 </div>
-                <button
-                  onClick={() => { setSelectedFragrance(null); setSearch('') }}
-                  style={{fontSize: '12px', color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer'}}
-                >
-                  ✕
-                </button>
+                <button onClick={() => { setSelectedFragrance(null); setSearch('') }} style={{fontSize: '12px', color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
               </div>
             ) : (
               <div>
@@ -182,13 +184,7 @@ export default function WearLogClient({ fragrances, initialLogs }: Props) {
           <div style={{fontSize: '12px', color: '#64748b', marginBottom: '8px'}}>Occasion</div>
           <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
             {occasions.map(o => (
-              <button
-                key={o}
-                onClick={() => setSelectedOccasion(prev => prev === o ? '' : o)}
-                style={btnStyle(selectedOccasion === o)}
-              >
-                {o}
-              </button>
+              <button key={o} onClick={() => setSelectedOccasion(prev => prev === o ? '' : o)} style={btnStyle(selectedOccasion === o)}>{o}</button>
             ))}
           </div>
         </div>
@@ -197,13 +193,7 @@ export default function WearLogClient({ fragrances, initialLogs }: Props) {
           <div style={{fontSize: '12px', color: '#64748b', marginBottom: '8px'}}>Time of day</div>
           <div style={{display: 'flex', gap: '8px'}}>
             {timesOfDay.map(t => (
-              <button
-                key={t}
-                onClick={() => setSelectedTimeOfDay(prev => prev === t ? '' : t)}
-                style={btnStyle(selectedTimeOfDay === t)}
-              >
-                {t}
-              </button>
+              <button key={t} onClick={() => setSelectedTimeOfDay(prev => prev === t ? '' : t)} style={btnStyle(selectedTimeOfDay === t)}>{t}</button>
             ))}
           </div>
         </div>
@@ -222,16 +212,7 @@ export default function WearLogClient({ fragrances, initialLogs }: Props) {
         <button
           onClick={handleLog}
           disabled={!selectedFragrance || loading}
-          style={{
-            padding: '12px 24px',
-            background: selectedFragrance ? '#1e3a5f' : '#e2e8f0',
-            color: selectedFragrance ? 'white' : '#94a3b8',
-            border: 'none',
-            borderRadius: '10px',
-            fontSize: '14px',
-            fontWeight: 500,
-            cursor: selectedFragrance ? 'pointer' : 'default',
-          }}
+          style={{padding: '12px 24px', background: selectedFragrance ? '#1e3a5f' : '#e2e8f0', color: selectedFragrance ? 'white' : '#94a3b8', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 500, cursor: selectedFragrance ? 'pointer' : 'default'}}
         >
           {loading ? 'Logging...' : success ? '✓ Logged!' : 'Log wear'}
         </button>
@@ -264,11 +245,16 @@ export default function WearLogClient({ fragrances, initialLogs }: Props) {
                           <div style={{fontFamily: 'Georgia, serif', fontSize: '18px', color: '#0f172a', marginBottom: '6px'}}>
                             {log.fragrance.name}
                           </div>
-                          {log.occasion && (
-                            <span style={{fontSize: '11px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '2px 8px', borderRadius: '999px'}}>
-                              {log.occasion}
+                          <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
+                            {log.occasion && (
+                              <span style={{fontSize: '11px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '2px 8px', borderRadius: '999px'}}>
+                                {log.occasion}
+                              </span>
+                            )}
+                            <span style={{fontSize: '11px', color: '#cbd5e1'}}>
+                              {formatTime(log.createdAt)}
                             </span>
-                          )}
+                          </div>
                         </div>
                         {log.fragrance.concentration && (
                           <span style={{fontSize: '11px', background: '#f8fafc', color: '#64748b', padding: '2px 8px', borderRadius: '999px'}}>

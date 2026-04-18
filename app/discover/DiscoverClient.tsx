@@ -56,6 +56,7 @@ function applyFilters(fragrances: Fragrance[], filters: FilterState, query: stri
 export default function DiscoverClient({ fragrances }: { fragrances: Fragrance[] }) {
   const searchParams = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') ?? '')
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [filters, setFilters] = useState<FilterState>({
     category: 'All', gender: 'All', occasion: 'All', timeOfDay: 'All', season: 'All', concentration: 'All',
   })
@@ -89,22 +90,37 @@ export default function DiscoverClient({ fragrances }: { fragrances: Fragrance[]
           const sortedPrices = [...fragrance.discounterPrices].sort((a, b) => a.priceUsd - b.priceUsd)
           const lowestPrice = sortedPrices[0]
           const savings = lowestPrice ? (fragrance.retailPriceUsd ?? 0) - lowestPrice.priceUsd : 0
+          const isHovered = hoveredId === fragrance.id
 
           return (
             <Link
               key={fragrance.id}
               href={`/fragrance/${fragrance.slug}`}
-              style={{border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', background: 'white', display: 'block', textDecoration: 'none'}}
+              onMouseEnter={() => setHoveredId(fragrance.id)}
+              onMouseLeave={() => setHoveredId(null)}
+              style={{
+                border: isHovered ? '1px solid #bfdbfe' : '1px solid #f1f5f9',
+                borderRadius: '16px',
+                padding: '20px',
+                background: isHovered ? '#f8fbff' : 'white',
+                display: 'block',
+                textDecoration: 'none',
+                transition: 'all 0.15s',
+                cursor: 'pointer',
+              }}
             >
               <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px'}}>
                 <div style={{fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#64748b'}}>
                   {fragrance.house.name}
                 </div>
-                {savings > 0 && (
-                  <span style={{fontSize: '11px', background: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '999px', fontWeight: 500}}>
-                    Save ${Math.round(savings)}
-                  </span>
-                )}
+                <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  {savings > 0 && (
+                    <span style={{fontSize: '11px', background: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '999px', fontWeight: 500}}>
+                      Save ${Math.round(savings)}
+                    </span>
+                  )}
+                  <span style={{fontSize: '11px', color: '#bfdbfe'}}>View →</span>
+                </div>
               </div>
               <div style={{fontFamily: 'Georgia, serif', fontSize: '20px', color: '#0f172a', marginBottom: '12px'}}>
                 {fragrance.name}

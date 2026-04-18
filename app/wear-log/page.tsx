@@ -13,7 +13,6 @@ async function getAllFragrances() {
     include: { house: true },
     orderBy: { name: 'asc' },
   })
-
   return fragrances.map(f => ({
     id: f.id,
     name: f.name,
@@ -28,15 +27,14 @@ async function getWearLogs(clerkId: string) {
 
   const logs = await prisma.wearLog.findMany({
     where: { userId: user.id },
-    include: {
-      fragrance: { include: { house: true } },
-    },
-    orderBy: { wornDate: 'desc' },
+    include: { fragrance: { include: { house: true } } },
+    orderBy: { createdAt: 'desc' },
   })
 
   return logs.map(l => ({
     id: l.id,
     wornDate: l.wornDate.toISOString(),
+    createdAt: l.createdAt.toISOString(),
     occasion: l.occasion,
     notes: l.notes,
     fragrance: {

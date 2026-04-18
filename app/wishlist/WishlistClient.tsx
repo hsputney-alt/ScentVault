@@ -55,6 +55,7 @@ export default function WishlistClient({ fragrances: initialFragrances }: { frag
   })
   const [query, setQuery] = useState('')
   const [removing, setRemoving] = useState<string | null>(null)
+  const [moving, setMoving] = useState<string | null>(null)
 
   async function handleRemove(fragranceId: string) {
     setRemoving(fragranceId)
@@ -65,6 +66,22 @@ export default function WishlistClient({ fragrances: initialFragrances }: { frag
     })
     setFragrances(prev => prev.filter(f => f.id !== fragranceId))
     setRemoving(null)
+  }
+
+  async function handleMoveToCollection(fragranceId: string) {
+    setMoving(fragranceId)
+    await fetch('/api/collection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fragranceId }),
+    })
+    await fetch('/api/wishlist', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fragranceId }),
+    })
+    setFragrances(prev => prev.filter(f => f.id !== fragranceId))
+    setMoving(null)
   }
 
   const filtered = applyFilters(fragrances, filters, query)
@@ -98,92 +115,70 @@ export default function WishlistClient({ fragrances: initialFragrances }: { frag
         {filtered.length} fragrance{filtered.length !== 1 ? 's' : ''}
       </div>
 
-      <div style={{border: '1px solid #f1f5f9', borderRadius: '16px', overflow: 'hidden'}}>
-        <table style={{width: '100%', borderCollapse: 'collapse'}}>
-          <thead>
-            <tr style={{borderBottom: '1px solid #f1f5f9'}}>
-              <th style={{textAlign: 'left', fontSize: '11px', color: '#94a3b8', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '12px 20px'}}>Fragrance</th>
-              <th style={{textAlign: 'right', fontSize: '11px', color: '#94a3b8', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '12px 20px', width: '100px'}}>Retail</th>
-              <th style={{textAlign: 'right', fontSize: '11px', color: '#94a3b8', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '12px 20px', width: '100px'}}>Best price</th>
-              <th style={{textAlign: 'right', fontSize: '11px', color: '#94a3b8', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '12px 20px', width: '100px'}}>Savings</th>
-              <th style={{textAlign: 'right', fontSize: '11px', color: '#94a3b8', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '12px 20px', width: '220px'}}>Buy</th>
-              <th style={{textAlign: 'right', fontSize: '11px', color: '#94a3b8', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '12px 20px', width: '80px'}}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((fragrance, index) => {
-              const sortedPrices = [...fragrance.discounterPrices].sort((a, b) => a.priceUsd - b.priceUsd)
-              const lowestPrice = sortedPrices[0]
-              const savings = lowestPrice ? (fragrance.retailPriceUsd ?? 0) - lowestPrice.priceUsd : 0
-              const isLast = index === filtered.length - 1
+      <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+        {filtered.map((fragrance) => {
+          const sortedPrices = [...fragrance.discounterPrices].sort((a, b) => a.priceUsd - b.priceUsd)
+          const lowestPrice = sortedPrices[0]
+          const savings = lowestPrice ? (fragrance.retailPriceUsd ?? 0) - lowestPrice.priceUsd : 0
 
-              return (
-                <tr key={fragrance.id} style={{borderBottom: isLast ? 'none' : '1px solid #f8fafc', background: 'white'}}>
-                  <td style={{padding: '16px 20px'}}>
-                    <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-                      <div style={{width: '8px', height: '8px', borderRadius: '50%', background: '#bfdbfe', flexShrink: 0}} />
-                      <div>
-                        <div style={{fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#64748b', marginBottom: '2px'}}>
-                          {fragrance.house.name}
-                        </div>
-                        <div style={{fontFamily: 'Georgia, serif', fontSize: '17px', color: '#0f172a'}}>
-                          {fragrance.name}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td style={{padding: '16px 20px', textAlign: 'right'}}>
-                    <span style={{fontSize: '14px', color: '#94a3b8', textDecoration: 'line-through'}}>
-                      ${(fragrance.retailPriceUsd ?? 0).toFixed(0)}
+          return (
+            <div key={fragrance.id} style={{border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', background: 'white'}}>
+              <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px'}}>
+                <div>
+                  <div style={{fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#64748b', marginBottom: '2px'}}>
+                    {fragrance.house.name}
+                  </div>
+                  <div style={{fontFamily: 'Georgia, serif', fontSize: '20px', color: '#0f172a'}}>
+                    {fragrance.name}
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleRemove(fragrance.id)}
+                  disabled={removing === fragrance.id}
+                  style={{fontSize: '18px', color: '#e2e8f0', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1, padding: '4px'}}
+                  title="Remove from wishlist"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px'}}>
+                <div style={{display: 'flex', alignItems: 'baseline', gap: '12px'}}>
+                  <span style={{fontSize: '13px', color: '#94a3b8', textDecoration: 'line-through'}}>${(fragrance.retailPriceUsd ?? 0).toFixed(0)}</span>
+                  {lowestPrice && (
+                    <span style={{fontSize: '18px', fontWeight: 600, color: '#1d4ed8'}}>${lowestPrice.priceUsd.toFixed(0)}</span>
+                  )}
+                  {savings > 0 && (
+                    <span style={{fontSize: '12px', background: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '999px', fontWeight: 500}}>
+                      Save ${Math.round(savings)}
                     </span>
-                  </td>
-                  <td style={{padding: '16px 20px', textAlign: 'right'}}>
-                    {lowestPrice ? (
-                      <span style={{fontSize: '14px', fontWeight: 600, color: '#1d4ed8'}}>
-                        ${lowestPrice.priceUsd.toFixed(0)}
-                      </span>
-                    ) : (
-                      <span style={{fontSize: '14px', color: '#cbd5e1'}}>—</span>
-                    )}
-                  </td>
-                  <td style={{padding: '16px 20px', textAlign: 'right'}}>
-                    {savings > 0 ? (
-                      <span style={{fontSize: '14px', fontWeight: 600, color: '#16a34a'}}>
-                        ${Math.round(savings)}
-                      </span>
-                    ) : (
-                      <span style={{fontSize: '14px', color: '#cbd5e1'}}>—</span>
-                    )}
-                  </td>
-                  <td style={{padding: '16px 20px'}}>
-                    <div style={{display: 'flex', gap: '8px', justifyContent: 'flex-end'}}>
-                      {sortedPrices.map((price) => (
-                        
-                          key={price.id}
-                          href={price.affiliateUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{fontSize: '12px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '6px 12px', borderRadius: '999px', textDecoration: 'none', whiteSpace: 'nowrap'}}
-                        >
-                          {price.discounter.name}
-                        </a>
-                      ))}
-                    </div>
-                  </td>
-                  <td style={{padding: '16px 20px', textAlign: 'right'}}>
-                    <button
-                      onClick={() => handleRemove(fragrance.id)}
-                      disabled={removing === fragrance.id}
-                      style={{fontSize: '11px', color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', padding: 0}}
+                  )}
+                </div>
+
+                <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
+                  {sortedPrices.map(price => (
+                    
+<a                       key={price.id}
+                      href={price.affiliateUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{fontSize: '12px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '6px 12px', borderRadius: '999px', textDecoration: 'none', whiteSpace: 'nowrap'}}
                     >
-                      {removing === fragrance.id ? '...' : 'Remove'}
-                    </button>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                      {price.discounter.name}
+                    </a>
+                  ))}
+                  <button
+                    onClick={() => handleMoveToCollection(fragrance.id)}
+                    disabled={moving === fragrance.id}
+                    style={{fontSize: '12px', background: '#1e3a5f', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '999px', cursor: 'pointer', whiteSpace: 'nowrap'}}
+                  >
+                    {moving === fragrance.id ? 'Moving...' : 'Move to collection'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       {filtered.length === 0 && fragrances.length > 0 && (

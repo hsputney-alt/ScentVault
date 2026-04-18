@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import FragranceFilters, { FilterState } from '../components/FragranceFilters'
 import SearchBar from '../components/SearchBar'
+import WeatherWidget from './WeatherWidget'
 
 type Fragrance = {
   id: string
@@ -62,19 +63,7 @@ export default function TodayClient({ fragrances }: { fragrances: Fragrance[] })
         <p style={{color: '#94a3b8', fontSize: '14px'}}>Pick an occasion and we will rank your collection for it.</p>
       </div>
 
-      <div style={{border: '1px solid #bfdbfe', background: '#eff6ff', borderRadius: '16px', padding: '20px', marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '16px', maxWidth: '400px', margin: '0 auto 32px'}}>
-        <div style={{width: '48px', height: '48px', background: '#dbeafe', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0}}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.5" strokeLinecap="round">
-            <circle cx="12" cy="12" r="5"/>
-            <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-          </svg>
-        </div>
-        <div>
-          <div style={{fontSize: '11px', color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px'}}>Buffalo, NY</div>
-          <div style={{color: '#1e3a5f', fontWeight: 500, fontSize: '15px'}}>58°F · Partly cloudy</div>
-          <div style={{fontSize: '12px', color: '#64748b', marginTop: '2px'}}>Cool and dry — great for heavier EDPs</div>
-        </div>
-      </div>
+      <WeatherWidget />
 
       <div style={{marginBottom: '32px'}}>
         <div style={{fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '16px'}}>What is the occasion?</div>

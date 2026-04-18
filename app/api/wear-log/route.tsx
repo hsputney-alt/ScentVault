@@ -20,6 +20,7 @@ export async function POST(request: Request) {
   if (!fragranceId) return NextResponse.json({ error: 'Missing fragranceId' }, { status: 400 })
 
   const user = await getOrCreateUser(userId)
+  const now = new Date()
 
   const log = await prisma.wearLog.create({
     data: {
@@ -27,7 +28,8 @@ export async function POST(request: Request) {
       fragranceId,
       occasion: occasion ?? null,
       notes: notes ?? null,
-      wornDate: new Date(),
+      wornDate: now,
+      createdAt: now,
     },
   })
 
@@ -43,11 +45,9 @@ export async function GET() {
   const logs = await prisma.wearLog.findMany({
     where: { userId: user.id },
     include: {
-      fragrance: {
-        include: { house: true },
-      },
+      fragrance: { include: { house: true } },
     },
-    orderBy: { wornDate: 'desc' },
+    orderBy: { createdAt: 'desc' },
   })
 
   return NextResponse.json({ logs })

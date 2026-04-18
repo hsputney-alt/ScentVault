@@ -21,20 +21,32 @@ export async function POST(request: Request) {
 
   const user = await getOrCreateUser(userId)
 
-  const entry = await prisma.userCollection.upsert({
-    where: { userId_fragranceId: { userId: user.id, fragranceId } },
-    update: {},
-    create: { userId: user.id, fragranceId },
+  const entry = await prisma.userCollection.create({
+    data: { userId: user.id, fragranceId },
   })
 
-  return NextResponse.json({ entry })
+  const count = await prisma.userCollection.count({
+    where: { userId: user.id, fragranceId },
+  })
+
+  return NextResponse.json({ entry, count })
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const url = new URL(request.url)
+  const fragranceId = url.searchParams.get('fragranceId')
+
   const user = await getOrCreateUser(userId)
+
+  if (fragranceId) {
+    const count = await prisma.userCollection.count({
+      where: { userId: user.id, fragranceId },
+    })
+    return NextResponse.json({ count })
+  }
 
   const collection = await prisma.userCollection.findMany({
     where: { userId: user.id },
@@ -51,9 +63,17 @@ export async function DELETE(request: Request) {
   const { fragranceId } = await request.json()
   const user = await getOrCreateUser(userId)
 
-  await prisma.userCollection.delete({
-    where: { userId_fragranceId: { userId: user.id, fragranceId } },
+  const entries = await prisma.userCollection.findMany({
+    where: { userId: user.id, fragranceId },
+    orderBy: { addedAt: 'desc' },
+    take: 1,
   })
+
+  if (entries.length > 0) {
+    await prisma.userCollection.delete({
+      where: { id: entries[0].id },
+    })
+  }
 
   return NextResponse.json({ success: true })
 }

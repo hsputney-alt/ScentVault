@@ -30,11 +30,21 @@ export async function POST(request: Request) {
   return NextResponse.json({ entry })
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const url = new URL(request.url)
+  const fragranceId = url.searchParams.get('fragranceId')
+
   const user = await getOrCreateUser(userId)
+
+  if (fragranceId) {
+    const entry = await prisma.userWishlist.findUnique({
+      where: { userId_fragranceId: { userId: user.id, fragranceId } },
+    })
+    return NextResponse.json({ inWishlist: !!entry })
+  }
 
   const wishlist = await prisma.userWishlist.findMany({
     where: { userId: user.id },
