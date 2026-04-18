@@ -15,6 +15,8 @@ type DiscounterPrice = {
 type Fragrance = {
   entryId: string
   purchasePrice: number | null
+  bottleSizeMl: number
+  fullness: number
   id: string
   name: string
   concentration: string | null
@@ -77,8 +79,8 @@ export default function CollectionClient({ fragrances: initialFragrances }: { fr
     const initial: Record<string, BottleState> = {}
     initialFragrances.forEach(f => {
       initial[f.entryId] = {
-        fullness: 10,
-        sizeMl: f.sizeMl ?? 100,
+        fullness: f.fullness ?? 10,
+        sizeMl: f.bottleSizeMl ?? f.sizeMl ?? 100,
         purchasePrice: f.purchasePrice ?? f.retailPriceUsd ?? 0,
       }
     })
@@ -110,6 +112,18 @@ export default function CollectionClient({ fragrances: initialFragrances }: { fr
     })
   }
 
+  async function updateBottle(entryId: string, key: 'fullness' | 'sizeMl', value: number) {
+    setBottleStates(prev => ({
+      ...prev,
+      [entryId]: { ...prev[entryId], [key]: value },
+    }))
+    await fetch(`/api/collection/${entryId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(key === 'sizeMl' ? { bottleSizeMl: value } : { fullness: value }),
+    })
+  }
+
   const filtered = applyFilters(fragrances, filters, query)
   const filtersActive = isFiltered(filters, query)
 
@@ -137,13 +151,6 @@ export default function CollectionClient({ fragrances: initialFragrances }: { fr
 
   function formatVolume(ml: number) {
     return useOz ? `${(ml / 29.5735).toFixed(1)} oz` : `${Math.round(ml)} mL`
-  }
-
-  function updateBottle(entryId: string, key: 'fullness' | 'sizeMl', value: number) {
-    setBottleStates(prev => ({
-      ...prev,
-      [entryId]: { ...prev[entryId], [key]: value },
-    }))
   }
 
   if (fragrances.length === 0) {
@@ -258,11 +265,18 @@ export default function CollectionClient({ fragrances: initialFragrances }: { fr
       </div>
 
       {viewMode === 'shelf' ? (
-        <ShelfView fragrances={filtered} bottleStates={Object.fromEntries(Object.entries(bottleStates).map(([k, v]) => [k, { fullness: v.fullness, sizeMl: v.sizeMl }]))} />
+        <ShelfView
+          fragrances={filtered}
+          bottleStates={Object.fromEntries(Object.entries(bottleStates).map(([k, v]) => [k, { fullness: v.fullness, sizeMl: v.sizeMl }]))}
+        />
       ) : (
         <div style={{display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px'}}>
           {filtered.map((fragrance) => {
-            const state = bottleStates[fragrance.entryId] ?? { fullness: 10, sizeMl: fragrance.sizeMl ?? 100, purchasePrice: fragrance.retailPriceUsd ?? 0 }
+            const state = bottleStates[fragrance.entryId] ?? {
+              fullness: fragrance.fullness ?? 10,
+              sizeMl: fragrance.bottleSizeMl ?? fragrance.sizeMl ?? 100,
+              purchasePrice: fragrance.purchasePrice ?? fragrance.retailPriceUsd ?? 0,
+            }
             const remainingMl = state.sizeMl * state.fullness / 10
 
             return (
