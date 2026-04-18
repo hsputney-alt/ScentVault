@@ -2,6 +2,8 @@ import { PrismaClient } from '@prisma/client'
 import Header from '../components/Header'
 import CollectionClient from './CollectionClient'
 
+export const dynamic = 'force-dynamic'
+
 const prisma = new PrismaClient()
 
 async function getFragrances() {

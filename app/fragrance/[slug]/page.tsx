@@ -3,6 +3,8 @@ import Link from 'next/link'
 import Header from '../../components/Header'
 import ActionButtons from './ActionButtons'
 
+export const dynamic = 'force-dynamic'
+
 const prisma = new PrismaClient()
 
 async function getFragrance(slug: string) {
@@ -241,7 +243,7 @@ export default async function FragrancePage({ params }: { params: Promise<{ slug
           <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
             {fragrance.discounterPrices.map((price, index) => (
               
-<a                 key={price.id}
+                key={price.id}
                 href={price.affiliateUrl}
                 target="_blank"
                 rel="noopener noreferrer"

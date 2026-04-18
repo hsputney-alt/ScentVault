@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import Header from '../components/Header'
 import WearLogClient from './WearLogClient'
 
+export const dynamic = 'force-dynamic'
+
 const prisma = new PrismaClient()
 
 async function getAllFragrances() {
