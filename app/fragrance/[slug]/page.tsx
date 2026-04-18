@@ -242,8 +242,9 @@ export default async function FragrancePage({ params }: { params: Promise<{ slug
           </div>
           <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
             {fragrance.discounterPrices.map((price, index) => (
-              
-<a                 key={price.id}
+            
+<a
+                 key={price.id}
                 href={price.affiliateUrl}
                 target="_blank"
                 rel="noopener noreferrer"
