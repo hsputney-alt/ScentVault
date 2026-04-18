@@ -48,12 +48,38 @@ function applyFilters(fragrances: Fragrance[], filters: FilterState, query: stri
   })
 }
 
-export default function WishlistClient({ fragrances }: { fragrances: Fragrance[] }) {
+export default function WishlistClient({ fragrances: initialFragrances }: { fragrances: Fragrance[] }) {
+  const [fragrances, setFragrances] = useState(initialFragrances)
   const [filters, setFilters] = useState<FilterState>({
     category: 'All', gender: 'All', occasion: 'All', timeOfDay: 'All', season: 'All', concentration: 'All',
   })
   const [query, setQuery] = useState('')
+  const [removing, setRemoving] = useState<string | null>(null)
+
+  async function handleRemove(fragranceId: string) {
+    setRemoving(fragranceId)
+    await fetch('/api/wishlist', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fragranceId }),
+    })
+    setFragrances(prev => prev.filter(f => f.id !== fragranceId))
+    setRemoving(null)
+  }
+
   const filtered = applyFilters(fragrances, filters, query)
+
+  if (fragrances.length === 0) {
+    return (
+      <div style={{padding: '64px 32px', maxWidth: '600px', margin: '0 auto', textAlign: 'center'}}>
+        <div style={{fontFamily: 'Georgia, serif', fontSize: '24px', color: '#0f172a', marginBottom: '12px'}}>Your wishlist is empty</div>
+        <p style={{color: '#94a3b8', fontSize: '14px', marginBottom: '24px'}}>Browse fragrances on the Discover page and add them to your wishlist.</p>
+        <a href="/discover" style={{background: '#1e3a5f', color: 'white', padding: '12px 24px', borderRadius: '10px', textDecoration: 'none', fontSize: '14px'}}>
+          Browse fragrances
+        </a>
+      </div>
+    )
+  }
 
   return (
     <div style={{padding: '32px', maxWidth: '1000px', margin: '0 auto'}}>
@@ -81,6 +107,7 @@ export default function WishlistClient({ fragrances }: { fragrances: Fragrance[]
               <th style={{textAlign: 'right', fontSize: '11px', color: '#94a3b8', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '12px 20px', width: '100px'}}>Best price</th>
               <th style={{textAlign: 'right', fontSize: '11px', color: '#94a3b8', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '12px 20px', width: '100px'}}>Savings</th>
               <th style={{textAlign: 'right', fontSize: '11px', color: '#94a3b8', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '12px 20px', width: '220px'}}>Buy</th>
+              <th style={{textAlign: 'right', fontSize: '11px', color: '#94a3b8', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '12px 20px', width: '80px'}}></th>
             </tr>
           </thead>
           <tbody>
@@ -132,7 +159,7 @@ export default function WishlistClient({ fragrances }: { fragrances: Fragrance[]
                     <div style={{display: 'flex', gap: '8px', justifyContent: 'flex-end'}}>
                       {sortedPrices.map((price) => (
                         
-<a                           key={price.id}
+                          key={price.id}
                           href={price.affiliateUrl}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -143,6 +170,15 @@ export default function WishlistClient({ fragrances }: { fragrances: Fragrance[]
                       ))}
                     </div>
                   </td>
+                  <td style={{padding: '16px 20px', textAlign: 'right'}}>
+                    <button
+                      onClick={() => handleRemove(fragrance.id)}
+                      disabled={removing === fragrance.id}
+                      style={{fontSize: '11px', color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', padding: 0}}
+                    >
+                      {removing === fragrance.id ? '...' : 'Remove'}
+                    </button>
+                  </td>
                 </tr>
               )
             })}
@@ -150,7 +186,7 @@ export default function WishlistClient({ fragrances }: { fragrances: Fragrance[]
         </table>
       </div>
 
-      {filtered.length === 0 && (
+      {filtered.length === 0 && fragrances.length > 0 && (
         <div style={{textAlign: 'center', padding: '48px', color: '#94a3b8', fontSize: '14px'}}>
           No fragrances match your search.
         </div>

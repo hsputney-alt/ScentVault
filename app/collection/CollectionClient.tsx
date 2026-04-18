@@ -61,20 +61,33 @@ function isFiltered(filters: FilterState, query: string) {
   return Object.values(filters).some(v => v !== 'All') || query.length > 0
 }
 
-export default function CollectionClient({ fragrances }: { fragrances: Fragrance[] }) {
+export default function CollectionClient({ fragrances: initialFragrances }: { fragrances: Fragrance[] }) {
+  const [fragrances, setFragrances] = useState(initialFragrances)
   const [filters, setFilters] = useState<FilterState>({
     category: 'All', gender: 'All', occasion: 'All', timeOfDay: 'All', season: 'All', concentration: 'All',
   })
   const [query, setQuery] = useState('')
   const [useOz, setUseOz] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'shelf'>('grid')
+  const [removing, setRemoving] = useState<string | null>(null)
   const [bottleStates, setBottleStates] = useState<Record<string, BottleState>>(() => {
     const initial: Record<string, BottleState> = {}
-    fragrances.forEach(f => {
+    initialFragrances.forEach(f => {
       initial[f.id] = { fullness: 10, sizeMl: f.sizeMl ?? 100 }
     })
     return initial
   })
+
+  async function handleRemove(fragranceId: string) {
+    setRemoving(fragranceId)
+    await fetch('/api/collection', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fragranceId }),
+    })
+    setFragrances(prev => prev.filter(f => f.id !== fragranceId))
+    setRemoving(null)
+  }
 
   const filtered = applyFilters(fragrances, filters, query)
   const filtersActive = isFiltered(filters, query)
@@ -110,6 +123,18 @@ export default function CollectionClient({ fragrances }: { fragrances: Fragrance
       ...prev,
       [id]: { ...prev[id], [key]: value },
     }))
+  }
+
+  if (fragrances.length === 0) {
+    return (
+      <div style={{padding: '64px 32px', maxWidth: '600px', margin: '0 auto', textAlign: 'center'}}>
+        <div style={{fontFamily: 'Georgia, serif', fontSize: '24px', color: '#0f172a', marginBottom: '12px'}}>Your collection is empty</div>
+        <p style={{color: '#94a3b8', fontSize: '14px', marginBottom: '24px'}}>Browse fragrances on the Discover page and add them to your collection.</p>
+        <a href="/discover" style={{background: '#1e3a5f', color: 'white', padding: '12px 24px', borderRadius: '10px', textDecoration: 'none', fontSize: '14px'}}>
+          Browse fragrances
+        </a>
+      </div>
+    )
   }
 
   return (
@@ -198,29 +223,13 @@ export default function CollectionClient({ fragrances }: { fragrances: Fragrance
         <div style={{display: 'flex', gap: '8px'}}>
           <button
             onClick={() => setViewMode('grid')}
-            style={{
-              padding: '6px 14px',
-              borderRadius: '8px',
-              border: viewMode === 'grid' ? '1px solid #1e3a5f' : '1px solid #e2e8f0',
-              background: viewMode === 'grid' ? '#1e3a5f' : 'white',
-              color: viewMode === 'grid' ? 'white' : '#64748b',
-              fontSize: '12px',
-              cursor: 'pointer',
-            }}
+            style={{padding: '6px 14px', borderRadius: '8px', border: viewMode === 'grid' ? '1px solid #1e3a5f' : '1px solid #e2e8f0', background: viewMode === 'grid' ? '#1e3a5f' : 'white', color: viewMode === 'grid' ? 'white' : '#64748b', fontSize: '12px', cursor: 'pointer'}}
           >
             Grid
           </button>
           <button
             onClick={() => setViewMode('shelf')}
-            style={{
-              padding: '6px 14px',
-              borderRadius: '8px',
-              border: viewMode === 'shelf' ? '1px solid #1e3a5f' : '1px solid #e2e8f0',
-              background: viewMode === 'shelf' ? '#1e3a5f' : 'white',
-              color: viewMode === 'shelf' ? 'white' : '#64748b',
-              fontSize: '12px',
-              cursor: 'pointer',
-            }}
+            style={{padding: '6px 14px', borderRadius: '8px', border: viewMode === 'shelf' ? '1px solid #1e3a5f' : '1px solid #e2e8f0', background: viewMode === 'shelf' ? '#1e3a5f' : 'white', color: viewMode === 'shelf' ? 'white' : '#64748b', fontSize: '12px', cursor: 'pointer'}}
           >
             Shelf
           </button>
@@ -239,8 +248,17 @@ export default function CollectionClient({ fragrances }: { fragrances: Fragrance
 
             return (
               <div key={fragrance.id} style={{border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', background: 'white'}}>
-                <div style={{fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#64748b', marginBottom: '4px'}}>
-                  {fragrance.house.name}
+                <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px'}}>
+                  <div style={{fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#64748b'}}>
+                    {fragrance.house.name}
+                  </div>
+                  <button
+                    onClick={() => handleRemove(fragrance.id)}
+                    disabled={removing === fragrance.id}
+                    style={{fontSize: '11px', color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', padding: 0}}
+                  >
+                    {removing === fragrance.id ? 'Removing...' : 'Remove'}
+                  </button>
                 </div>
                 <div style={{fontFamily: 'Georgia, serif', fontSize: '20px', color: '#0f172a', marginBottom: '12px'}}>
                   {fragrance.name}
@@ -321,7 +339,7 @@ export default function CollectionClient({ fragrances }: { fragrances: Fragrance
         </div>
       )}
 
-      {filtered.length === 0 && (
+      {filtered.length === 0 && fragrances.length > 0 && (
         <div style={{textAlign: 'center', padding: '48px', color: '#94a3b8', fontSize: '14px'}}>
           No fragrances match your search.
         </div>

@@ -14,33 +14,35 @@ async function main() {
   console.log('Seeding...')
 
   // Discounters
-  const fragranceX = await prisma.discounter.upsert({
-    where: { name: 'FragranceX' },
-    update: {},
-    create: { name: 'FragranceX', baseUrl: 'https://www.fragrancex.com', network: 'commission_junction' },
-  })
-  const fragranceNet = await prisma.discounter.upsert({
-    where: { name: 'FragranceNet' },
-    update: {},
-    create: { name: 'FragranceNet', baseUrl: 'https://www.fragrancenet.com', network: 'rakuten' },
-  })
-  const aura = await prisma.discounter.upsert({
-    where: { name: 'Aura Fragrance' },
-    update: {},
-    create: { name: 'Aura Fragrance', baseUrl: 'https://aurafragrance.com', network: 'direct' },
-  })
+  const fragranceX = await prisma.discounter.upsert({ where: { name: 'FragranceX' }, update: {}, create: { name: 'FragranceX', baseUrl: 'https://www.fragrancex.com', network: 'commission_junction' } })
+  const fragranceNet = await prisma.discounter.upsert({ where: { name: 'FragranceNet' }, update: {}, create: { name: 'FragranceNet', baseUrl: 'https://www.fragrancenet.com', network: 'rakuten' } })
+  const aura = await prisma.discounter.upsert({ where: { name: 'Aura Fragrance' }, update: {}, create: { name: 'Aura Fragrance', baseUrl: 'https://aurafragrance.com', network: 'direct' } })
 
   // Houses
   const chanel = await prisma.fragranceHouse.upsert({ where: { name: 'Chanel' }, update: {}, create: { name: 'Chanel', tier: 'designer', country: 'France', founded: 1910 } })
   const dior = await prisma.fragranceHouse.upsert({ where: { name: 'Dior' }, update: {}, create: { name: 'Dior', tier: 'designer', country: 'France', founded: 1946 } })
-  const tomFord = await prisma.fragranceHouse.upsert({ where: { name: 'Tom Ford' }, update: {}, create: { name: 'Tom Ford', tier: 'designer_niche', country: 'USA', founded: 2005 } })
+  const tomFord = await prisma.fragranceHouse.upsert({ where: { name: 'Tom Ford' }, update: {}, create: { name: 'Tom Ford', tier: 'niche', country: 'USA', founded: 2005 } })
   const creed = await prisma.fragranceHouse.upsert({ where: { name: 'Creed' }, update: {}, create: { name: 'Creed', tier: 'niche', country: 'France', founded: 1760 } })
   const versace = await prisma.fragranceHouse.upsert({ where: { name: 'Versace' }, update: {}, create: { name: 'Versace', tier: 'designer', country: 'Italy', founded: 1978 } })
   const armani = await prisma.fragranceHouse.upsert({ where: { name: 'Giorgio Armani' }, update: {}, create: { name: 'Giorgio Armani', tier: 'designer', country: 'Italy', founded: 1975 } })
+  const ysl = await prisma.fragranceHouse.upsert({ where: { name: 'Yves Saint Laurent' }, update: {}, create: { name: 'Yves Saint Laurent', tier: 'designer', country: 'France', founded: 1961 } })
+  const prada = await prisma.fragranceHouse.upsert({ where: { name: 'Prada' }, update: {}, create: { name: 'Prada', tier: 'designer', country: 'Italy', founded: 1913 } })
+  const burberry = await prisma.fragranceHouse.upsert({ where: { name: 'Burberry' }, update: {}, create: { name: 'Burberry', tier: 'designer', country: 'UK', founded: 1856 } })
+  const bleu = await prisma.fragranceHouse.upsert({ where: { name: 'Maison Margiela' }, update: {}, create: { name: 'Maison Margiela', tier: 'niche', country: 'France', founded: 1988 } })
+  const xerjoff = await prisma.fragranceHouse.upsert({ where: { name: 'Xerjoff' }, update: {}, create: { name: 'Xerjoff', tier: 'niche', country: 'Italy', founded: 2003 } })
+  const parfumsDeM = await prisma.fragranceHouse.upsert({ where: { name: 'Parfums de Marly' }, update: {}, create: { name: 'Parfums de Marly', tier: 'niche', country: 'France', founded: 2009 } })
+  const montblanc = await prisma.fragranceHouse.upsert({ where: { name: 'Montblanc' }, update: {}, create: { name: 'Montblanc', tier: 'designer', country: 'Germany', founded: 1906 } })
+  const guerlain = await prisma.fragranceHouse.upsert({ where: { name: 'Guerlain' }, update: {}, create: { name: 'Guerlain', tier: 'designer', country: 'France', founded: 1828 } })
+  const hermes = await prisma.fragranceHouse.upsert({ where: { name: 'Hermès' }, update: {}, create: { name: 'Hermès', tier: 'designer', country: 'France', founded: 1837 } })
+  const jpgaultier = await prisma.fragranceHouse.upsert({ where: { name: 'Jean Paul Gaultier' }, update: {}, create: { name: 'Jean Paul Gaultier', tier: 'designer', country: 'France', founded: 1976 } })
+  const lancôme = await prisma.fragranceHouse.upsert({ where: { name: 'Lancôme' }, update: {}, create: { name: 'Lancôme', tier: 'designer', country: 'France', founded: 1935 } })
+  const viktor = await prisma.fragranceHouse.upsert({ where: { name: 'Viktor & Rolf' }, update: {}, create: { name: 'Viktor & Rolf', tier: 'designer', country: 'Netherlands', founded: 1993 } })
+  const rabanne = await prisma.fragranceHouse.upsert({ where: { name: 'Paco Rabanne' }, update: {}, create: { name: 'Paco Rabanne', tier: 'designer', country: 'France', founded: 1966 } })
 
   // Notes
   const bergamot = await prisma.note.upsert({ where: { name: 'Bergamot' }, update: {}, create: { name: 'Bergamot', family: 'citrus' } })
   const grapefruit = await prisma.note.upsert({ where: { name: 'Grapefruit' }, update: {}, create: { name: 'Grapefruit', family: 'citrus' } })
+  const lemon = await prisma.note.upsert({ where: { name: 'Lemon' }, update: {}, create: { name: 'Lemon', family: 'citrus' } })
   const mint = await prisma.note.upsert({ where: { name: 'Mint' }, update: {}, create: { name: 'Mint', family: 'fresh' } })
   const ginger = await prisma.note.upsert({ where: { name: 'Ginger' }, update: {}, create: { name: 'Ginger', family: 'spicy' } })
   const incense = await prisma.note.upsert({ where: { name: 'Incense' }, update: {}, create: { name: 'Incense', family: 'oriental' } })
@@ -63,145 +65,43 @@ async function main() {
   const geranium = await prisma.note.upsert({ where: { name: 'Geranium' }, update: {}, create: { name: 'Geranium', family: 'floral' } })
   const sage = await prisma.note.upsert({ where: { name: 'Sage' }, update: {}, create: { name: 'Sage', family: 'aromatic' } })
   const patchouli = await prisma.note.upsert({ where: { name: 'Patchouli' }, update: {}, create: { name: 'Patchouli', family: 'woody' } })
+  const cedar = await prisma.note.upsert({ where: { name: 'Cedar' }, update: {}, create: { name: 'Cedar', family: 'woody' } })
+  const iris = await prisma.note.upsert({ where: { name: 'Iris' }, update: {}, create: { name: 'Iris', family: 'floral' } })
+  const neroli = await prisma.note.upsert({ where: { name: 'Neroli' }, update: {}, create: { name: 'Neroli', family: 'citrus' } })
+  const jasmine = await prisma.note.upsert({ where: { name: 'Jasmine' }, update: {}, create: { name: 'Jasmine', family: 'floral' } })
+  const pepper = await prisma.note.upsert({ where: { name: 'Black Pepper' }, update: {}, create: { name: 'Black Pepper', family: 'spicy' } })
+  const cinnamon = await prisma.note.upsert({ where: { name: 'Cinnamon' }, update: {}, create: { name: 'Cinnamon', family: 'spicy' } })
+  const agarwood = await prisma.note.upsert({ where: { name: 'Agarwood' }, update: {}, create: { name: 'Agarwood', family: 'woody' } })
+  const seaNotes = await prisma.note.upsert({ where: { name: 'Sea Notes' }, update: {}, create: { name: 'Sea Notes', family: 'fresh' } })
+  const waterNotes = await prisma.note.upsert({ where: { name: 'Water Notes' }, update: {}, create: { name: 'Water Notes', family: 'fresh' } })
+  const peach = await prisma.note.upsert({ where: { name: 'Peach' }, update: {}, create: { name: 'Peach', family: 'fruity' } })
+  const raspberry = await prisma.note.upsert({ where: { name: 'Raspberry' }, update: {}, create: { name: 'Raspberry', family: 'fruity' } })
+  const nutmeg = await prisma.note.upsert({ where: { name: 'Nutmeg' }, update: {}, create: { name: 'Nutmeg', family: 'spicy' } })
+  const heliotrope = await prisma.note.upsert({ where: { name: 'Heliotrope' }, update: {}, create: { name: 'Heliotrope', family: 'floral' } })
+  const orris = await prisma.note.upsert({ where: { name: 'Orris Root' }, update: {}, create: { name: 'Orris Root', family: 'floral' } })
 
   // Fragrances
-  const bleuChanel = await prisma.fragrance.upsert({
-    where: { slug: 'chanel-bleu-de-chanel-edp' },
-    update: {},
-    create: {
-      houseId: chanel.id,
-      name: 'Bleu de Chanel',
-      slug: 'chanel-bleu-de-chanel-edp',
-      concentration: 'EDP',
-      yearReleased: 2014,
-      perfumer: 'Olivier Polge',
-      retailPriceUsd: 185,
-      gender: 'masculine',
-      season: ['fall', 'winter', 'spring'],
-      occasion: ['office', 'casual', 'date'],
-      longevity: 8,
-      sillage: 7,
-      description: 'A refined woody aromatic with citrus freshness and deep woody base.',
-    },
-  })
-
-  const sauvage = await prisma.fragrance.upsert({
-    where: { slug: 'dior-sauvage-edp' },
-    update: {},
-    create: {
-      houseId: dior.id,
-      name: 'Sauvage',
-      slug: 'dior-sauvage-edp',
-      concentration: 'EDP',
-      yearReleased: 2018,
-      perfumer: 'François Demachy',
-      retailPriceUsd: 165,
-      gender: 'masculine',
-      season: ['fall', 'winter', 'spring'],
-      occasion: ['office', 'casual', 'evening'],
-      longevity: 9,
-      sillage: 8,
-      description: 'More lavender and amber depth than the EDT, with the signature ambroxan backbone.',
-    },
-  })
-
-  const oudWood = await prisma.fragrance.upsert({
-    where: { slug: 'tom-ford-oud-wood' },
-    update: {},
-    create: {
-      houseId: tomFord.id,
-      name: 'Oud Wood',
-      slug: 'tom-ford-oud-wood',
-      concentration: 'EDP',
-      yearReleased: 2007,
-      retailPriceUsd: 320,
-      gender: 'unisex',
-      season: ['fall', 'winter'],
-      occasion: ['evening', 'date'],
-      longevity: 8,
-      sillage: 6,
-      description: 'Warm, smooth, and creamy with rosewood and spice accents.',
-    },
-  })
-
-  const tobaccoVanille = await prisma.fragrance.upsert({
-    where: { slug: 'tom-ford-tobacco-vanille' },
-    update: {},
-    create: {
-      houseId: tomFord.id,
-      name: 'Tobacco Vanille',
-      slug: 'tom-ford-tobacco-vanille',
-      concentration: 'EDP',
-      yearReleased: 2007,
-      retailPriceUsd: 320,
-      gender: 'unisex',
-      season: ['fall', 'winter'],
-      occasion: ['evening', 'date'],
-      longevity: 9,
-      sillage: 8,
-      description: 'Rich tobacco, vanilla, and dried fruit — an addictively warm and sweet fragrance.',
-    },
-  })
-
-  const aventus = await prisma.fragrance.upsert({
-    where: { slug: 'creed-aventus' },
-    update: {},
-    create: {
-      houseId: creed.id,
-      name: 'Aventus',
-      slug: 'creed-aventus',
-      concentration: 'EDP',
-      yearReleased: 2010,
-      perfumer: 'Olivier Creed / Erwin Creed',
-      retailPriceUsd: 495,
-      gender: 'masculine',
-      season: ['spring', 'summer', 'fall'],
-      occasion: ['office', 'casual', 'date'],
-      longevity: 8,
-      sillage: 8,
-      description: 'The modern benchmark for masculine fragrance.',
-    },
-  })
-
-  const eros = await prisma.fragrance.upsert({
-    where: { slug: 'versace-eros-edt' },
-    update: {},
-    create: {
-      houseId: versace.id,
-      name: 'Eros',
-      slug: 'versace-eros-edt',
-      concentration: 'EDT',
-      yearReleased: 2012,
-      perfumer: 'Alberto Morillas',
-      retailPriceUsd: 95,
-      gender: 'masculine',
-      season: ['spring', 'summer'],
-      occasion: ['casual', 'date'],
-      longevity: 7,
-      sillage: 8,
-      description: 'Mint, green apple, and vanilla — a powerhouse casual fragrance.',
-    },
-  })
-
-  const adgProfumo = await prisma.fragrance.upsert({
-    where: { slug: 'armani-acqua-di-gio-profumo' },
-    update: {},
-    create: {
-      houseId: armani.id,
-      name: 'Acqua di Gio Profumo',
-      slug: 'armani-acqua-di-gio-profumo',
-      concentration: 'EDP',
-      yearReleased: 2015,
-      perfumer: 'Alberto Morillas',
-      retailPriceUsd: 145,
-      gender: 'masculine',
-      season: ['spring', 'summer', 'fall'],
-      occasion: ['casual', 'office'],
-      longevity: 8,
-      sillage: 7,
-      description: 'Incense and geranium over a fresh marine base — the best in the AdG line.',
-    },
-  })
+  const bleuChanel = await prisma.fragrance.upsert({ where: { slug: 'chanel-bleu-de-chanel-edp' }, update: {}, create: { houseId: chanel.id, name: 'Bleu de Chanel', slug: 'chanel-bleu-de-chanel-edp', concentration: 'EDP', yearReleased: 2014, perfumer: 'Olivier Polge', retailPriceUsd: 185, sizeMl: 100, gender: 'masculine', season: ['fall', 'winter', 'spring'], occasion: ['office', 'casual', 'date'], longevity: 8, sillage: 7, description: 'A refined woody aromatic with citrus freshness and deep woody base.' } })
+  const sauvage = await prisma.fragrance.upsert({ where: { slug: 'dior-sauvage-edp' }, update: {}, create: { houseId: dior.id, name: 'Sauvage', slug: 'dior-sauvage-edp', concentration: 'EDP', yearReleased: 2018, perfumer: 'François Demachy', retailPriceUsd: 165, sizeMl: 100, gender: 'masculine', season: ['fall', 'winter', 'spring'], occasion: ['office', 'casual', 'evening'], longevity: 9, sillage: 8, description: 'More lavender and amber depth than the EDT, with the signature ambroxan backbone.' } })
+  const oudWood = await prisma.fragrance.upsert({ where: { slug: 'tom-ford-oud-wood' }, update: {}, create: { houseId: tomFord.id, name: 'Oud Wood', slug: 'tom-ford-oud-wood', concentration: 'EDP', yearReleased: 2007, retailPriceUsd: 320, sizeMl: 50, gender: 'unisex', season: ['fall', 'winter'], occasion: ['evening', 'date'], longevity: 8, sillage: 6, description: 'Warm, smooth, and creamy with rosewood and spice accents.' } })
+  const tobaccoVanille = await prisma.fragrance.upsert({ where: { slug: 'tom-ford-tobacco-vanille' }, update: {}, create: { houseId: tomFord.id, name: 'Tobacco Vanille', slug: 'tom-ford-tobacco-vanille', concentration: 'EDP', yearReleased: 2007, retailPriceUsd: 320, sizeMl: 50, gender: 'unisex', season: ['fall', 'winter'], occasion: ['evening', 'date'], longevity: 9, sillage: 8, description: 'Rich tobacco, vanilla, and dried fruit — an addictively warm and sweet fragrance.' } })
+  const aventus = await prisma.fragrance.upsert({ where: { slug: 'creed-aventus' }, update: {}, create: { houseId: creed.id, name: 'Aventus', slug: 'creed-aventus', concentration: 'EDP', yearReleased: 2010, perfumer: 'Olivier Creed', retailPriceUsd: 495, sizeMl: 100, gender: 'masculine', season: ['spring', 'summer', 'fall'], occasion: ['office', 'casual', 'date'], longevity: 8, sillage: 8, description: 'The modern benchmark for masculine fragrance.' } })
+  const eros = await prisma.fragrance.upsert({ where: { slug: 'versace-eros-edt' }, update: {}, create: { houseId: versace.id, name: 'Eros', slug: 'versace-eros-edt', concentration: 'EDT', yearReleased: 2012, perfumer: 'Alberto Morillas', retailPriceUsd: 95, sizeMl: 100, gender: 'masculine', season: ['spring', 'summer'], occasion: ['casual', 'date'], longevity: 7, sillage: 8, description: 'Mint, green apple, and vanilla — a powerhouse casual fragrance.' } })
+  const adgProfumo = await prisma.fragrance.upsert({ where: { slug: 'armani-acqua-di-gio-profumo' }, update: {}, create: { houseId: armani.id, name: 'Acqua di Gio Profumo', slug: 'armani-acqua-di-gio-profumo', concentration: 'EDP', yearReleased: 2015, perfumer: 'Alberto Morillas', retailPriceUsd: 145, sizeMl: 100, gender: 'masculine', season: ['spring', 'summer', 'fall'], occasion: ['casual', 'office'], longevity: 8, sillage: 7, description: 'Incense and geranium over a fresh marine base — the best in the AdG line.' } })
+  const laHomme = await prisma.fragrance.upsert({ where: { slug: 'ysl-la-nuit-de-lhomme' }, update: {}, create: { houseId: ysl.id, name: "La Nuit de L'Homme", slug: 'ysl-la-nuit-de-lhomme', concentration: 'EDT', yearReleased: 2009, retailPriceUsd: 115, sizeMl: 100, gender: 'masculine', season: ['fall', 'winter'], occasion: ['date', 'evening'], longevity: 7, sillage: 7, description: 'Seductive cardamom and cedar with a smooth lavender opening.' } })
+  const pradaLuna = await prisma.fragrance.upsert({ where: { slug: 'prada-luna-rossa-carbon' }, update: {}, create: { houseId: prada.id, name: 'Luna Rossa Carbon', slug: 'prada-luna-rossa-carbon', concentration: 'EDT', yearReleased: 2017, retailPriceUsd: 120, sizeMl: 100, gender: 'masculine', season: ['spring', 'summer'], occasion: ['casual', 'sport'], longevity: 7, sillage: 7, description: 'Metallic lavender and tonka bean — sporty and refined.' } })
+  const burberryHero = await prisma.fragrance.upsert({ where: { slug: 'burberry-hero-edp' }, update: {}, create: { houseId: burberry.id, name: 'Hero', slug: 'burberry-hero-edp', concentration: 'EDP', yearReleased: 2022, retailPriceUsd: 120, sizeMl: 100, gender: 'masculine', season: ['fall', 'winter', 'spring'], occasion: ['office', 'date'], longevity: 8, sillage: 7, description: 'Cedar and juniper with an earthy, grounding base.' } })
+  const replica = await prisma.fragrance.upsert({ where: { slug: 'maison-margiela-by-the-fireplace' }, update: {}, create: { houseId: bleu.id, name: 'By the Fireplace', slug: 'maison-margiela-by-the-fireplace', concentration: 'EDT', yearReleased: 2015, retailPriceUsd: 175, sizeMl: 100, gender: 'unisex', season: ['fall', 'winter'], occasion: ['casual', 'evening'], longevity: 7, sillage: 6, description: 'Chestnut, guaiac wood, and vanilla — the smell of sitting by a fire.' } })
+  const xerjoffNaxos = await prisma.fragrance.upsert({ where: { slug: 'xerjoff-naxos' }, update: {}, create: { houseId: xerjoff.id, name: 'Naxos', slug: 'xerjoff-naxos', concentration: 'EDP', yearReleased: 2015, retailPriceUsd: 320, sizeMl: 50, gender: 'masculine', season: ['fall', 'winter'], occasion: ['date', 'evening'], longevity: 9, sillage: 8, description: 'Lavender and honey over tonka bean and tobacco — a stunning oriental.' } })
+  const layton = await prisma.fragrance.upsert({ where: { slug: 'parfums-de-marly-layton' }, update: {}, create: { houseId: parfumsDeM.id, name: 'Layton', slug: 'parfums-de-marly-layton', concentration: 'EDP', yearReleased: 2016, retailPriceUsd: 295, sizeMl: 125, gender: 'masculine', season: ['fall', 'winter', 'spring'], occasion: ['office', 'date', 'casual'], longevity: 9, sillage: 9, description: 'Apple, lavender, and vanilla — crowd-pleasing and universally loved.' } })
+  const montblancExplorer = await prisma.fragrance.upsert({ where: { slug: 'montblanc-explorer' }, update: {}, create: { houseId: montblanc.id, name: 'Explorer', slug: 'montblanc-explorer', concentration: 'EDP', yearReleased: 2019, retailPriceUsd: 85, sizeMl: 100, gender: 'masculine', season: ['spring', 'fall'], occasion: ['casual', 'office'], longevity: 7, sillage: 6, description: 'Bergamot and vetiver with an earthy, leathery base.' } })
+  const hommeSport = await prisma.fragrance.upsert({ where: { slug: 'dior-homme-sport-2017' }, update: {}, create: { houseId: dior.id, name: 'Homme Sport', slug: 'dior-homme-sport-2017', concentration: 'EDT', yearReleased: 2017, retailPriceUsd: 105, sizeMl: 100, gender: 'masculine', season: ['spring', 'summer'], occasion: ['sport', 'casual'], longevity: 6, sillage: 6, description: 'Crisp citrus and pepper with a woody base — clean and sporty.' } })
+  const terraHermes = await prisma.fragrance.upsert({ where: { slug: 'hermes-terre-dhermes-edp' }, update: {}, create: { houseId: hermes.id, name: "Terre d'Hermès", slug: 'hermes-terre-dhermes-edp', concentration: 'EDP', yearReleased: 2009, perfumer: 'Jean-Claude Ellena', retailPriceUsd: 155, sizeMl: 100, gender: 'masculine', season: ['spring', 'fall'], occasion: ['office', 'casual'], longevity: 8, sillage: 7, description: 'Earthy flint, orange, and cedar — a masterpiece of masculine perfumery.' } })
+  const jpgLeMale = await prisma.fragrance.upsert({ where: { slug: 'jean-paul-gaultier-le-male-elixir' }, update: {}, create: { houseId: jpgaultier.id, name: 'Le Male Elixir', slug: 'jean-paul-gaultier-le-male-elixir', concentration: 'Parfum', yearReleased: 2022, retailPriceUsd: 135, sizeMl: 75, gender: 'masculine', season: ['fall', 'winter'], occasion: ['date', 'evening'], longevity: 10, sillage: 9, description: 'Lavender, vanilla, and tonka in an intense, seductive parfum concentration.' } })
+  const idole = await prisma.fragrance.upsert({ where: { slug: 'lancome-idole-edp' }, update: {}, create: { houseId: lancôme.id, name: 'Idôle', slug: 'lancome-idole-edp', concentration: 'EDP', yearReleased: 2019, retailPriceUsd: 110, sizeMl: 100, gender: 'feminine', season: ['spring', 'summer'], occasion: ['casual', 'office'], longevity: 7, sillage: 6, description: 'Rose and jasmine with a clean musk base — modern and feminine.' } })
+  const flowerbomb = await prisma.fragrance.upsert({ where: { slug: 'viktor-rolf-flowerbomb-edp' }, update: {}, create: { houseId: viktor.id, name: 'Flowerbomb', slug: 'viktor-rolf-flowerbomb-edp', concentration: 'EDP', yearReleased: 2005, retailPriceUsd: 135, sizeMl: 100, gender: 'feminine', season: ['fall', 'winter'], occasion: ['date', 'evening', 'casual'], longevity: 8, sillage: 8, description: 'An explosive floral bouquet with patchouli and vanilla base.' } })
+  const invictus = await prisma.fragrance.upsert({ where: { slug: 'paco-rabanne-invictus-edp' }, update: {}, create: { houseId: rabanne.id, name: 'Invictus', slug: 'paco-rabanne-invictus-edp', concentration: 'EDP', yearReleased: 2022, retailPriceUsd: 120, sizeMl: 100, gender: 'masculine', season: ['fall', 'winter'], occasion: ['date', 'evening'], longevity: 8, sillage: 8, description: 'Aromatic woods and ambergris — a bold, commanding fragrance.' } })
+  const guerlainHommage = await prisma.fragrance.upsert({ where: { slug: 'guerlain-heritage-edp' }, update: {}, create: { houseId: guerlain.id, name: 'Héritage', slug: 'guerlain-heritage-edp', concentration: 'EDP', yearReleased: 1992, perfumer: 'Jean-Paul Guerlain', retailPriceUsd: 125, sizeMl: 100, gender: 'masculine', season: ['fall', 'winter'], occasion: ['office', 'casual'], longevity: 8, sillage: 7, description: 'A classic fougère with bergamot, sage, and sandalwood.' } })
 
   // Discounter prices
   await prisma.discounterPrice.upsert({ where: { fragranceId_discounterId: { fragranceId: bleuChanel.id, discounterId: fragranceX.id } }, update: {}, create: { fragranceId: bleuChanel.id, discounterId: fragranceX.id, priceUsd: 98, affiliateUrl: 'https://www.fragrancex.com/products/_cid_perfume-am-lid_B-am-pid_72150w' } })
@@ -214,8 +114,16 @@ async function main() {
   await prisma.discounterPrice.upsert({ where: { fragranceId_discounterId: { fragranceId: eros.id, discounterId: fragranceX.id } }, update: {}, create: { fragranceId: eros.id, discounterId: fragranceX.id, priceUsd: 49, affiliateUrl: 'https://www.fragrancex.com/products/_cid_perfume-am-lid_E-am-pid_61636w' } })
   await prisma.discounterPrice.upsert({ where: { fragranceId_discounterId: { fragranceId: eros.id, discounterId: aura.id } }, update: {}, create: { fragranceId: eros.id, discounterId: aura.id, priceUsd: 51, affiliateUrl: 'https://aurafragrance.com/versace-eros' } })
   await prisma.discounterPrice.upsert({ where: { fragranceId_discounterId: { fragranceId: adgProfumo.id, discounterId: fragranceX.id } }, update: {}, create: { fragranceId: adgProfumo.id, discounterId: fragranceX.id, priceUsd: 74, affiliateUrl: 'https://www.fragrancex.com/products/_cid_perfume-am-lid_A-am-pid_70793w' } })
+  await prisma.discounterPrice.upsert({ where: { fragranceId_discounterId: { fragranceId: laHomme.id, discounterId: fragranceX.id } }, update: {}, create: { fragranceId: laHomme.id, discounterId: fragranceX.id, priceUsd: 62, affiliateUrl: 'https://www.fragrancex.com/products/_cid_perfume-am-lid_L-am-pid_58462w' } })
+  await prisma.discounterPrice.upsert({ where: { fragranceId_discounterId: { fragranceId: pradaLuna.id, discounterId: fragranceX.id } }, update: {}, create: { fragranceId: pradaLuna.id, discounterId: fragranceX.id, priceUsd: 68, affiliateUrl: 'https://www.fragrancex.com/products/_cid_perfume-am-lid_P-am-pid_74848w' } })
+  await prisma.discounterPrice.upsert({ where: { fragranceId_discounterId: { fragranceId: layton.id, discounterId: fragranceX.id } }, update: {}, create: { fragranceId: layton.id, discounterId: fragranceX.id, priceUsd: 189, affiliateUrl: 'https://www.fragrancex.com/products/_cid_perfume-am-lid_L-am-pid_78906w' } })
+  await prisma.discounterPrice.upsert({ where: { fragranceId_discounterId: { fragranceId: montblancExplorer.id, discounterId: fragranceX.id } }, update: {}, create: { fragranceId: montblancExplorer.id, discounterId: fragranceX.id, priceUsd: 48, affiliateUrl: 'https://www.fragrancex.com/products/_cid_perfume-am-lid_M-am-pid_78234w' } })
+  await prisma.discounterPrice.upsert({ where: { fragranceId_discounterId: { fragranceId: terraHermes.id, discounterId: fragranceX.id } }, update: {}, create: { fragranceId: terraHermes.id, discounterId: fragranceX.id, priceUsd: 89, affiliateUrl: 'https://www.fragrancex.com/products/_cid_perfume-am-lid_T-am-pid_68432w' } })
+  await prisma.discounterPrice.upsert({ where: { fragranceId_discounterId: { fragranceId: flowerbomb.id, discounterId: fragranceX.id } }, update: {}, create: { fragranceId: flowerbomb.id, discounterId: fragranceX.id, priceUsd: 82, affiliateUrl: 'https://www.fragrancex.com/products/_cid_perfume-am-lid_F-am-pid_39456w' } })
+  await prisma.discounterPrice.upsert({ where: { fragranceId_discounterId: { fragranceId: invictus.id, discounterId: fragranceX.id } }, update: {}, create: { fragranceId: invictus.id, discounterId: fragranceX.id, priceUsd: 74, affiliateUrl: 'https://www.fragrancex.com/products/_cid_perfume-am-lid_I-am-pid_82341w' } })
+  await prisma.discounterPrice.upsert({ where: { fragranceId_discounterId: { fragranceId: jpgLeMale.id, discounterId: fragranceX.id } }, update: {}, create: { fragranceId: jpgLeMale.id, discounterId: fragranceX.id, priceUsd: 89, affiliateUrl: 'https://www.fragrancex.com/products/_cid_perfume-am-lid_L-am-pid_84521w' } })
 
-  // Fragrance notes
+  // Notes linking
   await linkNote(bleuChanel.id, grapefruit.id, 'top')
   await linkNote(bleuChanel.id, mint.id, 'top')
   await linkNote(bleuChanel.id, ginger.id, 'heart')
@@ -259,6 +167,89 @@ async function main() {
   await linkNote(adgProfumo.id, sage.id, 'heart')
   await linkNote(adgProfumo.id, incense.id, 'base')
   await linkNote(adgProfumo.id, patchouli.id, 'base')
+
+  await linkNote(laHomme.id, cardamom.id, 'top')
+  await linkNote(laHomme.id, bergamot.id, 'top')
+  await linkNote(laHomme.id, lavender.id, 'heart')
+  await linkNote(laHomme.id, cedar.id, 'base')
+  await linkNote(laHomme.id, vetiver.id, 'base')
+
+  await linkNote(pradaLuna.id, lavender.id, 'top')
+  await linkNote(pradaLuna.id, bergamot.id, 'top')
+  await linkNote(pradaLuna.id, iris.id, 'heart')
+  await linkNote(pradaLuna.id, tonkaBean.id, 'base')
+  await linkNote(pradaLuna.id, amber.id, 'base')
+
+  await linkNote(burberryHero.id, bergamot.id, 'top')
+  await linkNote(burberryHero.id, pepper.id, 'top')
+  await linkNote(burberryHero.id, cedar.id, 'heart')
+  await linkNote(burberryHero.id, vetiver.id, 'base')
+  await linkNote(burberryHero.id, musk.id, 'base')
+
+  await linkNote(replica.id, cinnamon.id, 'top')
+  await linkNote(replica.id, heliotrope.id, 'heart')
+  await linkNote(replica.id, vanilla.id, 'base')
+  await linkNote(replica.id, sandalwood.id, 'base')
+
+  await linkNote(xerjoffNaxos.id, lavender.id, 'top')
+  await linkNote(xerjoffNaxos.id, bergamot.id, 'top')
+  await linkNote(xerjoffNaxos.id, jasmine.id, 'heart')
+  await linkNote(xerjoffNaxos.id, tobacco.id, 'heart')
+  await linkNote(xerjoffNaxos.id, tonkaBean.id, 'base')
+  await linkNote(xerjoffNaxos.id, vanilla.id, 'base')
+
+  await linkNote(layton.id, apple.id, 'top')
+  await linkNote(layton.id, bergamot.id, 'top')
+  await linkNote(layton.id, lavender.id, 'heart')
+  await linkNote(layton.id, jasmine.id, 'heart')
+  await linkNote(layton.id, vanilla.id, 'base')
+  await linkNote(layton.id, sandalwood.id, 'base')
+
+  await linkNote(montblancExplorer.id, bergamot.id, 'top')
+  await linkNote(montblancExplorer.id, pepper.id, 'top')
+  await linkNote(montblancExplorer.id, vetiver.id, 'base')
+  await linkNote(montblancExplorer.id, oakmoss.id, 'base')
+
+  await linkNote(hommeSport.id, bergamot.id, 'top')
+  await linkNote(hommeSport.id, lemon.id, 'top')
+  await linkNote(hommeSport.id, pepper.id, 'heart')
+  await linkNote(hommeSport.id, cedar.id, 'base')
+  await linkNote(hommeSport.id, vetiver.id, 'base')
+
+  await linkNote(terraHermes.id, grapefruit.id, 'top')
+  await linkNote(terraHermes.id, pepper.id, 'top')
+  await linkNote(terraHermes.id, geranium.id, 'heart')
+  await linkNote(terraHermes.id, cedar.id, 'base')
+  await linkNote(terraHermes.id, vetiver.id, 'base')
+
+  await linkNote(jpgLeMale.id, lavender.id, 'top')
+  await linkNote(jpgLeMale.id, bergamot.id, 'top')
+  await linkNote(jpgLeMale.id, vanilla.id, 'heart')
+  await linkNote(jpgLeMale.id, tonkaBean.id, 'base')
+  await linkNote(jpgLeMale.id, amber.id, 'base')
+
+  await linkNote(idole.id, rose.id, 'top')
+  await linkNote(idole.id, jasmine.id, 'heart')
+  await linkNote(idole.id, musk.id, 'base')
+  await linkNote(idole.id, cedar.id, 'base')
+
+  await linkNote(flowerbomb.id, bergamot.id, 'top')
+  await linkNote(flowerbomb.id, rose.id, 'heart')
+  await linkNote(flowerbomb.id, jasmine.id, 'heart')
+  await linkNote(flowerbomb.id, patchouli.id, 'base')
+  await linkNote(flowerbomb.id, vanilla.id, 'base')
+
+  await linkNote(invictus.id, grapefruit.id, 'top')
+  await linkNote(invictus.id, seaNotes.id, 'top')
+  await linkNote(invictus.id, jasmine.id, 'heart')
+  await linkNote(invictus.id, amber.id, 'base')
+  await linkNote(invictus.id, musk.id, 'base')
+
+  await linkNote(guerlainHommage.id, bergamot.id, 'top')
+  await linkNote(guerlainHommage.id, sage.id, 'heart')
+  await linkNote(guerlainHommage.id, geranium.id, 'heart')
+  await linkNote(guerlainHommage.id, sandalwood.id, 'base')
+  await linkNote(guerlainHommage.id, vetiver.id, 'base')
 
   console.log('✅ Seed complete!')
 }

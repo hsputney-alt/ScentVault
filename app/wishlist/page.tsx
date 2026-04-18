@@ -1,4 +1,6 @@
+import { auth } from '@clerk/nextjs/server'
 import { PrismaClient } from '@prisma/client'
+import { redirect } from 'next/navigation'
 import Header from '../components/Header'
 import WishlistClient from './WishlistClient'
 
@@ -6,31 +8,35 @@ export const dynamic = 'force-dynamic'
 
 const prisma = new PrismaClient()
 
-async function getFragrances() {
-  const raw = await prisma.fragrance.findMany({
+async function getUserWishlist(clerkId: string) {
+  const user = await prisma.user.findUnique({ where: { clerkId } })
+  if (!user) return []
+
+  const wishlist = await prisma.userWishlist.findMany({
+    where: { userId: user.id },
     include: {
-      house: true,
-      discounterPrices: {
-        include: { discounter: true },
-      },
-      notes: {
-        include: { note: true },
+      fragrance: {
+        include: {
+          house: true,
+          discounterPrices: { include: { discounter: true } },
+          notes: { include: { note: true } },
+        },
       },
     },
-    orderBy: { name: 'asc' },
+    orderBy: { addedAt: 'desc' },
   })
 
-  return raw.map(f => ({
-    id: f.id,
-    name: f.name,
-    concentration: f.concentration,
-    occasion: f.occasion,
-    season: f.season,
-    gender: f.gender,
-    retailPriceUsd: f.retailPriceUsd ? Number(f.retailPriceUsd) : null,
-    notes: f.notes.map(n => n.note.name),
-    house: { name: f.house.name, tier: f.house.tier },
-    discounterPrices: f.discounterPrices.map(p => ({
+  return wishlist.map(w => ({
+    id: w.fragrance.id,
+    name: w.fragrance.name,
+    concentration: w.fragrance.concentration,
+    occasion: w.fragrance.occasion,
+    season: w.fragrance.season,
+    gender: w.fragrance.gender,
+    retailPriceUsd: w.fragrance.retailPriceUsd ? Number(w.fragrance.retailPriceUsd) : null,
+    notes: w.fragrance.notes.map(n => n.note.name),
+    house: { name: w.fragrance.house.name, tier: w.fragrance.house.tier },
+    discounterPrices: w.fragrance.discounterPrices.map(p => ({
       id: p.id,
       priceUsd: Number(p.priceUsd),
       affiliateUrl: p.affiliateUrl,
@@ -40,7 +46,10 @@ async function getFragrances() {
 }
 
 export default async function WishlistPage() {
-  const fragrances = await getFragrances()
+  const { userId } = await auth()
+  if (!userId) redirect('/sign-in')
+
+  const fragrances = await getUserWishlist(userId)
 
   return (
     <main className="min-h-screen bg-white">

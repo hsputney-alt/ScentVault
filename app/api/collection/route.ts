@@ -8,10 +8,7 @@ async function getOrCreateUser(clerkId: string) {
   return await prisma.user.upsert({
     where: { clerkId },
     update: {},
-    create: {
-      clerkId,
-      username: clerkId,
-    },
+    create: { clerkId, username: clerkId },
   })
 }
 
