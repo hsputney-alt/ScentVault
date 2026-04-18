@@ -13,6 +13,8 @@ type DiscounterPrice = {
 }
 
 type Fragrance = {
+  entryId: string
+  purchasePrice: number | null
   id: string
   name: string
   concentration: string | null
@@ -31,6 +33,7 @@ type Fragrance = {
 type BottleState = {
   fullness: number
   sizeMl: number
+  purchasePrice: number
 }
 
 function applyFilters(fragrances: Fragrance[], filters: FilterState, query: string) {
@@ -73,20 +76,38 @@ export default function CollectionClient({ fragrances: initialFragrances }: { fr
   const [bottleStates, setBottleStates] = useState<Record<string, BottleState>>(() => {
     const initial: Record<string, BottleState> = {}
     initialFragrances.forEach(f => {
-      initial[f.id] = { fullness: 10, sizeMl: f.sizeMl ?? 100 }
+      initial[f.entryId] = {
+        fullness: 10,
+        sizeMl: f.sizeMl ?? 100,
+        purchasePrice: f.purchasePrice ?? f.retailPriceUsd ?? 0,
+      }
     })
     return initial
   })
 
-  async function handleRemove(fragranceId: string) {
-    setRemoving(fragranceId)
+  async function handleRemove(entryId: string) {
+    setRemoving(entryId)
+    const fragrance = fragrances.find(f => f.entryId === entryId)
+    if (!fragrance) return
     await fetch('/api/collection', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fragranceId }),
+      body: JSON.stringify({ fragranceId: fragrance.id }),
     })
-    setFragrances(prev => prev.filter(f => f.id !== fragranceId))
+    setFragrances(prev => prev.filter(f => f.entryId !== entryId))
     setRemoving(null)
+  }
+
+  async function handlePurchasePriceChange(entryId: string, value: number) {
+    setBottleStates(prev => ({
+      ...prev,
+      [entryId]: { ...prev[entryId], purchasePrice: value },
+    }))
+    await fetch(`/api/collection/${entryId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ purchasePrice: value }),
+    })
   }
 
   const filtered = applyFilters(fragrances, filters, query)
@@ -94,22 +115,22 @@ export default function CollectionClient({ fragrances: initialFragrances }: { fr
 
   const retailTotal = fragrances.reduce((sum, f) => sum + (f.retailPriceUsd ?? 0), 0)
   const paidTotal = fragrances.reduce((sum, f) => {
-    const lowest = f.discounterPrices.reduce((min, p) => p.priceUsd < min ? p.priceUsd : min, Infinity)
-    return sum + (lowest === Infinity ? (f.retailPriceUsd ?? 0) : lowest)
+    const state = bottleStates[f.entryId]
+    return sum + (state?.purchasePrice ?? f.retailPriceUsd ?? 0)
   }, 0)
   const totalMl = fragrances.reduce((sum, f) => {
-    const state = bottleStates[f.id]
+    const state = bottleStates[f.entryId]
     if (!state) return sum
     return sum + (state.sizeMl * state.fullness / 10)
   }, 0)
 
   const filteredRetailTotal = filtered.reduce((sum, f) => sum + (f.retailPriceUsd ?? 0), 0)
   const filteredPaidTotal = filtered.reduce((sum, f) => {
-    const lowest = f.discounterPrices.reduce((min, p) => p.priceUsd < min ? p.priceUsd : min, Infinity)
-    return sum + (lowest === Infinity ? (f.retailPriceUsd ?? 0) : lowest)
+    const state = bottleStates[f.entryId]
+    return sum + (state?.purchasePrice ?? f.retailPriceUsd ?? 0)
   }, 0)
   const filteredMl = filtered.reduce((sum, f) => {
-    const state = bottleStates[f.id]
+    const state = bottleStates[f.entryId]
     if (!state) return sum
     return sum + (state.sizeMl * state.fullness / 10)
   }, 0)
@@ -118,10 +139,10 @@ export default function CollectionClient({ fragrances: initialFragrances }: { fr
     return useOz ? `${(ml / 29.5735).toFixed(1)} oz` : `${Math.round(ml)} mL`
   }
 
-  function updateBottle(id: string, key: keyof BottleState, value: number) {
+  function updateBottle(entryId: string, key: 'fullness' | 'sizeMl', value: number) {
     setBottleStates(prev => ({
       ...prev,
-      [id]: { ...prev[id], [key]: value },
+      [entryId]: { ...prev[entryId], [key]: value },
     }))
   }
 
@@ -218,7 +239,7 @@ export default function CollectionClient({ fragrances: initialFragrances }: { fr
 
       <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px'}}>
         <div style={{fontSize: '12px', color: '#94a3b8'}}>
-          {filtered.length} fragrance{filtered.length !== 1 ? 's' : ''}
+          {filtered.length} bottle{filtered.length !== 1 ? 's' : ''}
         </div>
         <div style={{display: 'flex', gap: '8px'}}>
           <button
@@ -237,27 +258,25 @@ export default function CollectionClient({ fragrances: initialFragrances }: { fr
       </div>
 
       {viewMode === 'shelf' ? (
-        <ShelfView fragrances={filtered} bottleStates={bottleStates} />
+        <ShelfView fragrances={filtered} bottleStates={Object.fromEntries(Object.entries(bottleStates).map(([k, v]) => [k, { fullness: v.fullness, sizeMl: v.sizeMl }]))} />
       ) : (
         <div style={{display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px'}}>
           {filtered.map((fragrance) => {
-            const lowest = fragrance.discounterPrices.reduce((min, p) => p.priceUsd < min ? p.priceUsd : min, Infinity)
-            const youPaid = lowest === Infinity ? (fragrance.retailPriceUsd ?? 0) : lowest
-            const state = bottleStates[fragrance.id] ?? { fullness: 10, sizeMl: fragrance.sizeMl ?? 100 }
+            const state = bottleStates[fragrance.entryId] ?? { fullness: 10, sizeMl: fragrance.sizeMl ?? 100, purchasePrice: fragrance.retailPriceUsd ?? 0 }
             const remainingMl = state.sizeMl * state.fullness / 10
 
             return (
-              <div key={fragrance.id} style={{border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', background: 'white'}}>
+              <div key={fragrance.entryId} style={{border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', background: 'white'}}>
                 <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px'}}>
                   <div style={{fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#64748b'}}>
                     {fragrance.house.name}
                   </div>
                   <button
-                    onClick={() => handleRemove(fragrance.id)}
-                    disabled={removing === fragrance.id}
+                    onClick={() => handleRemove(fragrance.entryId)}
+                    disabled={removing === fragrance.entryId}
                     style={{fontSize: '11px', color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', padding: 0}}
                   >
-                    {removing === fragrance.id ? 'Removing...' : 'Remove'}
+                    {removing === fragrance.entryId ? 'Removing...' : 'Remove'}
                   </button>
                 </div>
                 <div style={{fontFamily: 'Georgia, serif', fontSize: '20px', color: '#0f172a', marginBottom: '12px'}}>
@@ -292,7 +311,7 @@ export default function CollectionClient({ fragrances: initialFragrances }: { fr
                           value={state.sizeMl}
                           min={1}
                           max={1000}
-                          onChange={e => updateBottle(fragrance.id, 'sizeMl', Number(e.target.value))}
+                          onChange={e => updateBottle(fragrance.entryId, 'sizeMl', Number(e.target.value))}
                           style={{width: '64px', padding: '4px 8px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', color: '#0f172a'}}
                         />
                         <span style={{fontSize: '12px', color: '#64748b'}}>mL</span>
@@ -314,7 +333,7 @@ export default function CollectionClient({ fragrances: initialFragrances }: { fr
                       max={10}
                       step={1}
                       value={state.fullness}
-                      onChange={e => updateBottle(fragrance.id, 'fullness', Number(e.target.value))}
+                      onChange={e => updateBottle(fragrance.entryId, 'fullness', Number(e.target.value))}
                       style={{width: '100%', accentColor: '#1e3a5f'}}
                     />
                     <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#cbd5e1', marginTop: '2px'}}>
@@ -330,7 +349,16 @@ export default function CollectionClient({ fragrances: initialFragrances }: { fr
                   </div>
                   <div>
                     <div style={{fontSize: '11px', color: '#94a3b8', marginBottom: '2px'}}>You paid</div>
-                    <div style={{fontSize: '14px', fontWeight: 500, color: '#1d4ed8'}}>${Math.round(youPaid)}</div>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+                      <span style={{fontSize: '13px', color: '#475569'}}>$</span>
+                      <input
+                        type="number"
+                        value={state.purchasePrice}
+                        min={0}
+                        onChange={e => handlePurchasePriceChange(fragrance.entryId, Number(e.target.value))}
+                        style={{width: '72px', padding: '4px 8px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', color: '#1d4ed8', fontWeight: 500}}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

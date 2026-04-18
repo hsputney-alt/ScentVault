@@ -27,6 +27,8 @@ async function getUserCollection(clerkId: string) {
   })
 
   return collection.map(c => ({
+    entryId: c.id,
+    purchasePrice: c.purchasePrice ? Number(c.purchasePrice) : null,
     id: c.fragrance.id,
     name: c.fragrance.name,
     concentration: c.fragrance.concentration,
