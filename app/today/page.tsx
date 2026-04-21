@@ -1,4 +1,6 @@
+import { auth } from '@clerk/nextjs/server'
 import { PrismaClient } from '@prisma/client'
+import { redirect } from 'next/navigation'
 import Header from '../components/Header'
 import TodayClient from './TodayClient'
 
@@ -6,36 +8,45 @@ export const dynamic = 'force-dynamic'
 
 const prisma = new PrismaClient()
 
-async function getFragrances() {
-  const raw = await prisma.fragrance.findMany({
+async function getCollectionFragrances(clerkId: string) {
+  const user = await prisma.user.findUnique({ where: { clerkId } })
+  if (!user) return []
+
+  const collection = await prisma.userCollection.findMany({
+    where: { userId: user.id },
     include: {
-      house: true,
-      notes: {
-        include: { note: true },
+      fragrance: {
+        include: {
+          house: true,
+          notes: { include: { note: true } },
+        },
       },
     },
-    orderBy: { name: 'asc' },
+    orderBy: { fragrance: { name: 'asc' } },
   })
 
-  return raw.map(f => ({
-    id: f.id,
-    name: f.name,
-    concentration: f.concentration,
-    occasion: f.occasion,
-    season: f.season,
-    gender: f.gender,
-    longevity: f.longevity,
-    sillage: f.sillage,
-    notes: f.notes.map(n => n.note.name),
-    house: { name: f.house.name, tier: f.house.tier },
+  return collection.map(c => ({
+    id: c.fragrance.id,
+    name: c.fragrance.name,
+    concentration: c.fragrance.concentration,
+    occasion: c.fragrance.occasion,
+    season: c.fragrance.season,
+    gender: c.fragrance.gender,
+    longevity: c.fragrance.longevity,
+    sillage: c.fragrance.sillage,
+    notes: c.fragrance.notes.map(n => n.note.name),
+    house: { name: c.fragrance.house.name, tier: c.fragrance.house.tier },
   }))
 }
 
 export default async function TodayPage() {
-  const fragrances = await getFragrances()
+  const { userId } = await auth()
+  if (!userId) redirect('/sign-in')
+
+  const fragrances = await getCollectionFragrances(userId)
 
   return (
-    <main className="min-h-screen bg-white">
+    <main style={{minHeight: '100vh', background: 'white'}}>
       <Header active="/today" />
       <TodayClient fragrances={fragrances} />
     </main>

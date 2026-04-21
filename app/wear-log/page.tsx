@@ -8,16 +8,21 @@ export const dynamic = 'force-dynamic'
 
 const prisma = new PrismaClient()
 
-async function getAllFragrances() {
-  const fragrances = await prisma.fragrance.findMany({
-    include: { house: true },
-    orderBy: { name: 'asc' },
+async function getCollectionFragrances(clerkId: string) {
+  const user = await prisma.user.findUnique({ where: { clerkId } })
+  if (!user) return []
+
+  const collection = await prisma.userCollection.findMany({
+    where: { userId: user.id },
+    include: { fragrance: { include: { house: true } } },
+    orderBy: { fragrance: { name: 'asc' } },
   })
-  return fragrances.map(f => ({
-    id: f.id,
-    name: f.name,
-    house: { name: f.house.name },
-    concentration: f.concentration,
+
+  return collection.map(c => ({
+    id: c.fragrance.id,
+    name: c.fragrance.name,
+    house: { name: c.fragrance.house.name },
+    concentration: c.fragrance.concentration,
   }))
 }
 
@@ -49,7 +54,7 @@ export default async function WearLogPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
 
-  const fragrances = await getAllFragrances()
+  const fragrances = await getCollectionFragrances(userId)
   const logs = await getWearLogs(userId)
 
   return (

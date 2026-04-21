@@ -52,6 +52,7 @@ export default function WearLogClient({ fragrances, initialLogs }: Props) {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
+  const [removing, setRemoving] = useState<string | null>(null)
 
   const searchResults = useMemo(() => {
     if (!search) return []
@@ -101,6 +102,15 @@ export default function WearLogClient({ fragrances, initialLogs }: Props) {
     setSuccess(true)
     setTimeout(() => setSuccess(false), 3000)
     setLoading(false)
+  }
+
+  async function handleRemove(logId: string) {
+    setRemoving(logId)
+    await fetch(`/api/wear-log/${logId}`, {
+      method: 'DELETE',
+    })
+    setLogs(prev => prev.filter(l => l.id !== logId))
+    setRemoving(null)
   }
 
   const grouped: Record<string, WearLog[]> = {}
@@ -256,11 +266,20 @@ export default function WearLogClient({ fragrances, initialLogs }: Props) {
                             </span>
                           </div>
                         </div>
-                        {log.fragrance.concentration && (
-                          <span style={{fontSize: '11px', background: '#f8fafc', color: '#64748b', padding: '2px 8px', borderRadius: '999px'}}>
-                            {log.fragrance.concentration}
-                          </span>
-                        )}
+                        <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                          {log.fragrance.concentration && (
+                            <span style={{fontSize: '11px', background: '#f8fafc', color: '#64748b', padding: '2px 8px', borderRadius: '999px'}}>
+                              {log.fragrance.concentration}
+                            </span>
+                          )}
+                          <button
+                            onClick={() => handleRemove(log.id)}
+                            disabled={removing === log.id}
+                            style={{fontSize: '11px', color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', padding: 0}}
+                          >
+                            {removing === log.id ? 'Removing...' : 'Remove'}
+                          </button>
+                        </div>
                       </div>
                       {log.notes && (
                         <div style={{marginTop: '10px', fontSize: '13px', color: '#64748b', fontStyle: 'italic', borderTop: '1px solid #f8fafc', paddingTop: '10px'}}>

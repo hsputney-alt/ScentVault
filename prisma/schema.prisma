@@ -21,31 +21,30 @@ model FragranceHouse {
 }
 
 model Fragrance {
-  id               String   @id @default(uuid())
-  houseId          String
-  name             String
-  slug             String   @unique
-  concentration    String?
-  yearReleased     Int?
-  perfumer         String?
-  description      String?
-  retailPriceUsd   Decimal? @db.Decimal(8, 2)
-  sizeMl           Int      @default(100)
-  gender           String   @default("unisex")
-  season           String[]
-  occasion         String[]
-  longevity        Int?
-  sillage          Int?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  house            FragranceHouse    @relation(fields: [houseId], references: [id])
-  notes            FragranceNote[]
-  discounterPrices DiscounterPrice[]
+  id                String            @id @default(uuid())
+  houseId           String
+  name              String
+  slug              String            @unique
+  concentration     String?
+  yearReleased      Int?
+  perfumer          String?
+  description       String?
+  retailPriceUsd    Decimal?          @db.Decimal(8, 2)
+  sizeMl            Int               @default(100)
+  gender            String            @default("unisex")
+  season            String[]
+  occasion          String[]
+  longevity         Int?
+  sillage           Int?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  communityRatings  CommunityRating[]
+  discounterPrices  DiscounterPrice[]
+  notes             FragranceNote[]
+  house             FragranceHouse    @relation(fields: [houseId], references: [id])
   collectionEntries UserCollection[]
-  wishlistEntries  UserWishlist[]
-  wearLogs         WearLog[]
-  communityRatings CommunityRating[]
+  wishlistEntries   UserWishlist[]
+  wearLogs          WearLog[]
 
   @@index([houseId])
   @@map("fragrances")
@@ -84,35 +83,33 @@ model Discounter {
 }
 
 model DiscounterPrice {
-  id           String    @id @default(uuid())
+  id           String     @id @default(uuid())
   fragranceId  String
   discounterId String
-  priceUsd     Decimal   @db.Decimal(8, 2)
+  priceUsd     Decimal    @db.Decimal(8, 2)
   affiliateUrl String
-  inStock      Boolean   @default(true)
-  lastSyncedAt DateTime  @default(now())
-
-  fragrance   Fragrance  @relation(fields: [fragranceId], references: [id], onDelete: Cascade)
-  discounter  Discounter @relation(fields: [discounterId], references: [id])
+  inStock      Boolean    @default(true)
+  lastSyncedAt DateTime   @default(now())
+  discounter   Discounter @relation(fields: [discounterId], references: [id])
+  fragrance    Fragrance  @relation(fields: [fragranceId], references: [id], onDelete: Cascade)
 
   @@unique([fragranceId, discounterId])
   @@map("discounter_prices")
 }
 
 model User {
-  id          String   @id @default(uuid())
-  clerkId     String?  @unique
-  username    String   @unique
-  displayName String?
-  avatarUrl   String?
-  bio         String?
-  isPublic    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-
+  id               String            @id @default(uuid())
+  clerkId          String?           @unique
+  username         String            @unique
+  displayName      String?
+  avatarUrl        String?
+  bio              String?
+  isPublic         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  communityRatings CommunityRating[]
   collection       UserCollection[]
   wishlist         UserWishlist[]
   wearLogs         WearLog[]
-  communityRatings CommunityRating[]
 
   @@map("users")
 }
@@ -123,63 +120,59 @@ model UserCollection {
   fragranceId   String
   status        String    @default("owned")
   bottleSizeMl  Int?
-  fullness      Int       @default(10)
   purchasePrice Decimal?  @db.Decimal(8, 2)
   purchaseDate  DateTime?
   rating        Decimal?  @db.Decimal(3, 1)
   notes         String?
   occasions     String[]
   addedAt       DateTime  @default(now())
-
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fragrance Fragrance @relation(fields: [fragranceId], references: [id])
+  fullness      Int       @default(10)
+  fragrance     Fragrance @relation(fields: [fragranceId], references: [id])
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_collection")
 }
 
 model UserWishlist {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   userId      String
   fragranceId String
-  priority    Int      @default(3)
-  addedAt     DateTime @default(now())
-
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fragrance Fragrance @relation(fields: [fragranceId], references: [id])
+  priority    Int       @default(3)
+  addedAt     DateTime  @default(now())
+  fragrance   Fragrance @relation(fields: [fragranceId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, fragranceId])
   @@map("user_wishlist")
 }
 
 model WearLog {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   userId       String
   fragranceId  String
-  wornDate     DateTime @db.Date
+  wornDate     DateTime  @db.Date
   occasion     String?
   weatherTempF Int?
   weatherDesc  String?
   notes        String?
-  createdAt    DateTime @default(now())
-
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fragrance Fragrance @relation(fields: [fragranceId], references: [id])
+  createdAt    DateTime  @default(now())
+  fragrance    Fragrance @relation(fields: [fragranceId], references: [id])
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("wear_log")
 }
 
 model CommunityRating {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   userId      String
   fragranceId String
   longevity   Int?
   sillage     Int?
   value       Int?
   review      String?
-  createdAt   DateTime @default(now())
-
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fragrance Fragrance @relation(fields: [fragranceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  fragrance   Fragrance @relation(fields: [fragranceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, fragranceId])
   @@map("community_ratings")
